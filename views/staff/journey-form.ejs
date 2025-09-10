@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>New Journey - Bus Tracking System</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="/css/style.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="/staff/dashboard"><i class="fas fa-bus me-2"></i>Staff Dashboard</a>
+            <div class="d-flex">
+                <a href="/staff/dashboard" class="btn btn-outline-light">Dashboard</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container my-4">
+        <div class="row">
+            <div class="col-lg-8 mx-auto">
+                <div class="card shadow-lg">
+                    <div class="card-header bg-primary text-white">
+                        <h3><i class="fas fa-plus-circle me-2"></i>Create New Journey</h3>
+                    </div>
+                    <div class="card-body p-4">
+                        <div id="alert" class="alert d-none"></div>
+                        
+                        <!-- Location Permission Request -->
+                        <div id="locationPermission" class="alert alert-warning">
+                            <h5><i class="fas fa-map-marker-alt me-2"></i>Location Access Required</h5>
+                            <p>This app needs access to your location for GPS tracking. Please click "Allow Location Access" to enable real-time bus tracking.</p>
+                            <button class="btn btn-warning" onclick="requestLocationPermission()">
+                                <i class="fas fa-location-arrow me-2"></i>Allow Location Access
+                            </button>
+                        </div>
+                        
+                        <form id="journeyForm">
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="startingPoint" class="form-label">Starting Point <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" id="startingPoint" required>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="destination" class="form-label">Destination <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" id="destination" required>
+                                </div>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="route" class="form-label">Route <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" id="route" required>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="highway" class="form-label">Highway</label>
+                                    <input type="text" class="form-control" id="highway">
+                                </div>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="busNumber" class="form-label">Bus Number <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" id="busNumber" required>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="depot" class="form-label">Bus Depot</label>
+                                    <input type="text" class="form-control" id="depot">
+                                </div>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="driverName" class="form-label">Driver Name <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" id="driverName" required>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="conductorName" class="form-label">Conductor Name <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" id="conductorName" required>
+                                </div>
+                            </div>
+                            
+                            <!-- Current Location Display -->
+                            <div class="mb-3">
+                                <label class="form-label">Current Location</label>
+                                <div id="locationInfo" class="form-control bg-light">
+                                    <span class="text-muted">Location not detected. Please allow location access.</span>
+                                </div>
+                            </div>
+                            
+                            <!-- Map Display -->
+                            <div class="mb-3">
+                                <label class="form-label">Route Map</label>
+                                <div id="map" style="height: 300px;" class="border rounded"></div>
+                            </div>
+                            
+                            <div class="d-flex justify-content-between">
+                                <a href="/staff/dashboard" class="btn btn-secondary">
+                                    <i class="fas fa-arrow-left me-2"></i>Back to Dashboard
+                                </a>
+                                <button type="submit" class="btn btn-primary" id="submitBtn">
+                                    <i class="fas fa-save me-2"></i>Create Journey
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        let map, currentLocationMarker;
+        let currentPosition = null;
+        let watchId = null;
+
+        // Initialize map
+        function initMap() {
+            map = L.map('map').setView([20.5937, 78.9629], 5); // India center
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                maxZoom: 19,
+                attribution: '© OpenStreetMap contributors'
+            }).addTo(map);
+        }
+
+        // Request location permission
+        function requestLocationPermission() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(
+                    (position) => {
+                        document.getElementById('locationPermission').style.display = 'none';
+                        startLocationTracking();
+                        showAlert('success', 'Location access granted! GPS tracking is now active.');
+                    },
+                    (error) => {
+                        showAlert('danger', 'Location access denied. GPS tracking will not be available.');
+                    }
+                );
+            } else {
+                showAlert('danger', 'Geolocation is not supported by this browser.');
+            }
+        }
+
+        // Start continuous location tracking
+        function startLocationTracking() {
+            if (navigator.geolocation) {
+                watchId = navigator.geolocation.watchPosition(
+                    (position) => {
+                        currentPosition = position;
+                        updateLocationDisplay(position);
+                        updateMapLocation(position);
+                    },
+                    (error) => {
+                        console.error('Location tracking error:', error);
+                    },
+                    { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 }
+                );
+            }
+        }
+
+        // Update location display
+        function updateLocationDisplay(position) {
+            const { latitude, longitude } = position.coords;
+            const locationInfo = document.getElementById('locationInfo');
+            locationInfo.innerHTML = `
+                <i class="fas fa-map-marker-alt text-success me-2"></i>
+                Lat: ${latitude.toFixed(6)}, Lng: ${longitude.toFixed(6)}
+                <span class="live-indicator">🟢 Live</span>
+            `;
+        }
+
+        // Update map with current location
+        function updateMapLocation(position) {
+            const { latitude, longitude } = position.coords;
+            
+            if (currentLocationMarker) {
+                map.removeLayer(currentLocationMarker);
+            }
+            
+            currentLocationMarker = L.marker([latitude, longitude])
+                .addTo(map)
+                .bindPopup('Your current location')
+                .openPopup();
+            
+            map.setView([latitude, longitude], 13);
+        }
+
+        // Show alert
+        function showAlert(type, message) {
+            const alert = document.getElementById('alert');
+            alert.className = `alert alert-${type}`;
+            alert.textContent = message;
+            alert.classList.remove('d-none');
+            
+            setTimeout(() => {
+                alert.classList.add('d-none');
+            }, 5000);
+        }
+
+        // Handle form submission
+        document.getElementById('journeyForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const formData = {
+                startingPoint: document.getElementById('startingPoint').value,
+                destination: document.getElementById('destination').value,
+                route: document.getElementById('route').value,
+                highway: document.getElementById('highway').value,
+                busNumber: document.getElementById('busNumber').value,
+                depot: document.getElementById('depot').value,
+                driverName: document.getElementById('driverName').value,
+                conductorName: document.getElementById('conductorName').value
+            };
+            
+            try {
+                const response = await fetch('/staff/journey', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(formData)
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    // Start location updates for this journey
+                    if (currentPosition && data.journeyId) {
+                        setInterval(async () => {
+                            if (currentPosition) {
+                                await updateJourneyLocation(data.journeyId, currentPosition);
+                            }
+                        }, 30000); // Update every 30 seconds
+                    }
+                    
+                    showAlert('success', 'Journey created successfully! Redirecting to dashboard...');
+                    setTimeout(() => {
+                        window.location.href = '/staff/dashboard';
+                    }, 2000);
+                } else {
+                    showAlert('danger', data.error);
+                }
+            } catch (error) {
+                showAlert('danger', 'An error occurred. Please try again.');
+            }
+        });
+
+        // Update journey location
+        async function updateJourneyLocation(journeyId, position) {
+            try {
+                await fetch('/staff/location/update', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        journeyId: journeyId,
+                        lat: position.coords.latitude,
+                        lng: position.coords.longitude
+                    })
+                });
+            } catch (error) {
+                console.error('Error updating location:', error);
+            }
+        }
+
+        // Initialize when page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            initMap();
+        });
+
+        // Clean up location tracking when page unloads
+        window.addEventListener('beforeunload', () => {
+            if (watchId) {
+                navigator.geolocation.clearWatch(watchId);
+            }
+        });
+    </script>
+</body>
+</html>

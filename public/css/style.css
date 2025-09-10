@@ -1,0 +1,140 @@
+/* Custom styles for Bus Tracking System */
+
+.bg-gradient {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    min-height: 100vh;
+}
+
+.hover-card {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    cursor: pointer;
+}
+
+.hover-card:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 10px 25px rgba(0,0,0,0.2) !important;
+}
+
+.card {
+    border-radius: 15px;
+    backdrop-filter: blur(10px);
+    background: rgba(255, 255, 255, 0.95);
+}
+
+.btn {
+    border-radius: 25px;
+    transition: all 0.3s ease;
+}
+
+.btn:hover {
+    transform: translateY(-2px);
+}
+
+/* Map styles */
+#map {
+    height: 400px;
+    width: 100%;
+    border-radius: 10px;
+}
+
+/* Dashboard cards */
+.dashboard-card {
+    border-radius: 15px;
+    transition: transform 0.2s ease;
+}
+
+.dashboard-card:hover {
+    transform: scale(1.02);
+}
+
+/* Loading spinner */
+.loading-spinner {
+    border: 4px solid #f3f3f3;
+    border-top: 4px solid #3498db;
+    border-radius: 50%;
+    width: 50px;
+    height: 50px;
+    animation: spin 1s linear infinite;
+    margin: 20px auto;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Form styles */
+.form-control:focus {
+    border-color: #667eea;
+    box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+}
+
+/* Navigation styles */
+.navbar-brand {
+    font-weight: bold;
+}
+
+/* Mobile responsive */
+@media (max-width: 768px) {
+    .display-3 {
+        font-size: 2rem;
+    }
+    
+    #map {
+        height: 300px;
+    }
+}
+
+/* Alert styles */
+.alert {
+    border-radius: 10px;
+    border: none;
+}
+
+/* Table styles */
+.table {
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.table thead th {
+    background-color: #667eea;
+    color: white;
+    border: none;
+}
+
+/* Status badges */
+.status-running {
+    background-color: #28a745;
+}
+
+.status-starting {
+    background-color: #ffc107;
+}
+
+.status-completed {
+    background-color: #6c757d;
+}
+
+/* Bus icons on map */
+.bus-icon {
+    font-size: 24px;
+    color: #ff4757;
+}
+
+/* Animation for live updates */
+.live-indicator {
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.5;
+    }
+    100% {
+        opacity: 1;
+    }
+}

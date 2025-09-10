@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bus Tracking System</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="/css/style.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container-fluid min-vh-100 d-flex align-items-center justify-content-center bg-gradient">
+        <div class="row w-100">
+            <div class="col-12 text-center mb-5">
+                <h1 class="display-3 fw-bold text-white mb-3">
+                    <i class="fas fa-bus me-3"></i>Bus Tracking System
+                </h1>
+                <p class="lead text-white-50">Choose your access type to continue</p>
+            </div>
+            
+            <div class="col-lg-4 col-md-6 mb-4">
+                <div class="card h-100 shadow-lg border-0 hover-card">
+                    <div class="card-body text-center p-5">
+                        <div class="mb-4">
+                            <i class="fas fa-users fa-4x text-primary"></i>
+                        </div>
+                        <h3 class="card-title fw-bold mb-3">Staff</h3>
+                        <p class="card-text text-muted mb-4">
+                            For conductors and drivers to manage journey details and track bus locations
+                        </p>
+                        <a href="/staff" class="btn btn-primary btn-lg w-100">
+                            <i class="fas fa-sign-in-alt me-2"></i>Staff Access
+                        </a>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-lg-4 col-md-6 mb-4">
+                <div class="card h-100 shadow-lg border-0 hover-card">
+                    <div class="card-body text-center p-5">
+                        <div class="mb-4">
+                            <i class="fas fa-cog fa-4x text-success"></i>
+                        </div>
+                        <h3 class="card-title fw-bold mb-3">Administration</h3>
+                        <p class="card-text text-muted mb-4">
+                            Monitor all bus operations, view dashboards, and manage system data
+                        </p>
+                        <a href="/admin" class="btn btn-success btn-lg w-100">
+                            <i class="fas fa-shield-alt me-2"></i>Admin Access
+                        </a>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-lg-4 col-md-12 mb-4">
+                <div class="card h-100 shadow-lg border-0 hover-card">
+                    <div class="card-body text-center p-5">
+                        <div class="mb-4">
+                            <i class="fas fa-map-marked-alt fa-4x text-info"></i>
+                        </div>
+                        <h3 class="card-title fw-bold mb-3">Public</h3>
+                        <p class="card-text text-muted mb-4">
+                            Search for buses, track live locations, and plan your journey
+                        </p>
+                        <a href="/public" class="btn btn-info btn-lg w-100">
+                            <i class="fas fa-search me-2"></i>Public Access
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <footer class="text-center text-white-50 py-3">
+        <p>&copy; 2024 Bus Tracking System. All rights reserved.</p>
+    </footer>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

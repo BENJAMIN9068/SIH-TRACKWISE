@@ -1,0 +1,7 @@
+node_modules/
+coverage/
+public/
+views/
+*.md
+package-lock.json
+.env
