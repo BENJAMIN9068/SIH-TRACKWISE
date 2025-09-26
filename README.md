@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # 🚌 TrackWise - Smart Bus Tracking System
 
 A comprehensive bus tracking system with real-time GPS tracking, AI-powered assistance, and multiple user portals for staff, admin, and public users.
@@ -200,3 +201,6 @@ This project is licensed under the MIT License.
 ---
 
 **🎉 Ready to Deploy! Follow the steps above to get your TrackWise system live on Vercel! 🚌**
+=======
+# SIH-TRACKWISE
+>>>>>>> eacd2b360639f61b772d168c10a86e50c19c5cdd
