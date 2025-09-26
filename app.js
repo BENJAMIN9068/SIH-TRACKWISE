@@ -33,6 +33,7 @@ const adminRoutes = require('./routes/admin');
 const publicRoutes = require('./routes/public');
 const apiRoutes = require('./routes/api');
 const seatRoutes = require('./routes/seats');
+const seedRoutes = require('./routes/seed');
 
 // Import AI Chatbot (with error handling)
 let AIChatbotController;
@@ -105,6 +106,7 @@ app.use('/admin', adminRoutes);
 app.use('/public', publicRoutes);
 app.use('/api', apiRoutes);
 app.use('/api/seats', seatRoutes);
+app.use('/seed', seedRoutes);
 
 // Debug routes (safe, no secrets revealed)
 app.use('/debug', require('./routes/debug'));

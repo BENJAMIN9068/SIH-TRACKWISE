@@ -106,7 +106,8 @@ const conductorData = [
 
 async function seedConductors() {
   try {
-    await mongoose.connect(process.env.MONGO_URI || 'mongodb://localhost:27017/bus-tracking', {
+    const mongoUri = process.env.MONGODB_URI || process.env.MONGO_URI || 'mongodb://localhost:27017/bus-tracking';
+    await mongoose.connect(mongoUri, {
       useNewUrlParser: true,
       useUnifiedTopology: true,
     });
