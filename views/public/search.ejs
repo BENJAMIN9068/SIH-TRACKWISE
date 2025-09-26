@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Search Buses - Bus Tracking System</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="/css/style.css" rel="stylesheet">
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-info">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="/public/dashboard"><i class="fas fa-map-marked-alt me-2"></i>Bus Tracker</a>
+            <div class="navbar-nav me-auto">
+                <a class="nav-link" href="/public/dashboard">Dashboard</a>
+                <a class="nav-link active" href="/public/search">Search Buses</a>
+            </div>
+            <div class="d-flex">
+                <form action="/auth/logout" method="post">
+                    <button class="btn btn-outline-light" type="submit">Logout</button>
+                </form>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container my-4">
+        <!-- Search Form -->
+        <div class="row mb-4">
+            <div class="col-lg-8 mx-auto">
+                <div class="card shadow">
+                    <div class="card-header bg-info text-white">
+                        <h4><i class="fas fa-search me-2"></i>Search Buses</h4>
+                    </div>
+                    <div class="card-body">
+                        <form id="searchForm">
+                            <div class="row">
+                                <div class="col-md-5 mb-3">
+                                    <label for="fromStation" class="form-label">From Station</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text"><i class="fas fa-map-marker-alt text-success"></i></span>
+                                        <input type="text" class="form-control" id="fromStation" placeholder="Enter starting point" required>
+                                    </div>
+                                </div>
+                                <div class="col-md-2 text-center d-flex align-items-end">
+                                    <div class="mb-3 w-100">
+                                        <button type="button" class="btn btn-outline-secondary" onclick="swapStations()">
+                                            <i class="fas fa-exchange-alt"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="col-md-5 mb-3">
+                                    <label for="toStation" class="form-label">To Station</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text"><i class="fas fa-map-marker-alt text-danger"></i></span>
+                                        <input type="text" class="form-control" id="toStation" placeholder="Enter destination" required>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="text-center">
+                                <button type="submit" class="btn btn-primary btn-lg">
+                                    <i class="fas fa-search me-2"></i>Search Buses
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Search Results -->
+        <div id="searchResults" class="d-none">
+            <div class="row">
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h5><i class="fas fa-bus me-2"></i>Available Buses</h5>
+                            <span class="badge bg-primary" id="resultCount">0</span>
+                        </div>
+                        <div class="card-body" id="resultsContainer">
+                            <!-- Results will be populated here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Loading State -->
+        <div id="loadingState" class="d-none text-center">
+            <div class="card">
+                <div class="card-body py-5">
+                    <div class="spinner-border text-info" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <p class="mt-3">Searching for buses...</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- No Results -->
+        <div id="noResults" class="d-none">
+            <div class="card">
+                <div class="card-body text-center py-5">
+                    <i class="fas fa-exclamation-circle fa-3x text-warning mb-3"></i>
+                    <h5>No buses found</h5>
+                    <p class="text-muted">No buses are currently running on this route. Try searching for a different route or check back later.</p>
+                    <button class="btn btn-primary" onclick="clearSearch()">
+                        <i class="fas fa-search me-2"></i>New Search
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Search Suggestions -->
+        <div class="row mt-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h6><i class="fas fa-lightbulb me-2"></i>Quick Search Suggestions</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-3 mb-2">
+                                <button class="btn btn-outline-info btn-sm w-100" onclick="quickSearch('Mumbai', 'Pune')">
+                                    Mumbai → Pune
+                                </button>
+                            </div>
+                            <div class="col-md-3 mb-2">
+                                <button class="btn btn-outline-info btn-sm w-100" onclick="quickSearch('Delhi', 'Gurgaon')">
+                                    Delhi → Gurgaon
+                                </button>
+                            </div>
+                            <div class="col-md-3 mb-2">
+                                <button class="btn btn-outline-info btn-sm w-100" onclick="quickSearch('Bangalore', 'Mysore')">
+                                    Bangalore → Mysore
+                                </button>
+                            </div>
+                            <div class="col-md-3 mb-2">
+                                <button class="btn btn-outline-info btn-sm w-100" onclick="quickSearch('Chennai', 'Pondicherry')">
+                                    Chennai → Pondicherry
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Seat Information Modal -->
+    <div class="modal fade" id="seatInfoModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-info text-white">
+                    <h5 class="modal-title">
+                        <i class="fas fa-chair me-2"></i>Seat Availability
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="text-center mb-3">
+                        <h6 id="modalBusNumber" class="text-primary">Bus Information</h6>
+                    </div>
+                    
+                    <div class="row text-center mb-4">
+                        <div class="col-4">
+                            <div class="card bg-light">
+                                <div class="card-body py-2">
+                                    <h4 class="text-success" id="modalTotalSeats">--</h4>
+                                    <small class="text-muted">Total Seats</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-4">
+                            <div class="card bg-light">
+                                <div class="card-body py-2">
+                                    <h4 class="text-primary" id="modalAvailableSeats">--</h4>
+                                    <small class="text-muted">Available</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-4">
+                            <div class="card bg-light">
+                                <div class="card-body py-2">
+                                    <h4 class="text-warning" id="modalOccupiedSeats">--</h4>
+                                    <small class="text-muted">Occupied</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i>
+                        <strong>Note:</strong> Seat availability is updated in real-time by the bus conductor. 
+                        Please confirm seat availability when boarding.
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-6">
+                            <div class="d-flex align-items-center mb-2">
+                                <div class="seat-indicator available me-2"></div>
+                                <small>Available Seat</small>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="d-flex align-items-center mb-2">
+                                <div class="seat-indicator occupied me-2"></div>
+                                <small>Occupied Seat</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary" onclick="trackBus()">
+                        <i class="fas fa-map-marker-alt me-1"></i>Track This Bus
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        let searchTimeout;
+
+        // Handle search form submission
+        document.getElementById('searchForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            await performSearch();
+        });
+
+        // Perform search
+        async function performSearch() {
+            const fromStation = document.getElementById('fromStation').value.trim();
+            const toStation = document.getElementById('toStation').value.trim();
+
+            if (!fromStation || !toStation) {
+                alert('Please enter both starting point and destination');
+                return;
+            }
+
+            showLoading();
+            hideResults();
+
+            try {
+                const response = await fetch(`/api/search?from=${encodeURIComponent(fromStation)}&to=${encodeURIComponent(toStation)}`);
+                const data = await response.json();
+
+                hideLoading();
+
+                if (data.success && data.buses && data.buses.length > 0) {
+                    displayResults(data.buses);
+                    // Record search in travel history
+                    recordSearch(fromStation, toStation, data.buses[0]);
+                } else {
+                    showNoResults();
+                }
+            } catch (error) {
+                hideLoading();
+                console.error('Search error:', error);
+                showNoResults();
+            }
+        }
+
+        // Display search results
+        function displayResults(buses) {
+            const container = document.getElementById('resultsContainer');
+            const resultCount = document.getElementById('resultCount');
+            
+            resultCount.textContent = buses.length;
+            
+            let html = '';
+            buses.forEach(bus => {
+                const statusClass = bus.status === 'running' ? 'success' : 'warning';
+                html += `
+                    <div class="bus-result mb-3 p-3 border rounded">
+                        <div class="row align-items-center">
+                            <div class="col-md-2">
+                                <h6 class="mb-1"><i class="fas fa-bus text-info me-2"></i><strong>${bus.busNumber}</strong></h6>
+                                <span class="badge bg-${statusClass}">${bus.status}</span>
+                            </div>
+                            <div class="col-md-4">
+                                <p class="mb-1"><strong>${bus.startingPoint}</strong> → <strong>${bus.destination}</strong></p>
+                                <small class="text-muted">Route: ${bus.route}</small>
+                                ${bus.highway ? `<br><small class="text-muted">Highway: ${bus.highway}</small>` : ''}
+                            </div>
+                            <div class="col-md-3">
+                                ${bus.depot ? `<p class="mb-1 small">Depot: ${bus.depot}</p>` : ''}
+                                <small class="text-muted">Started: ${new Date(bus.startedAt).toLocaleTimeString()}</small>
+                                
+                                <!-- Seat Availability -->
+                                ${bus.seatAvailability && bus.seatAvailability.totalSeats > 0 ? `
+                                    <div class="mt-2 p-2 rounded" style="background-color: ${bus.seatAvailability.availableSeats > 0 ? '#e8f5e8' : '#fff3cd'}; border: 1px solid ${bus.seatAvailability.availableSeats > 0 ? '#c3e6cb' : '#ffeaa7'};">
+                                        <small class="fw-bold text-${bus.seatAvailability.availableSeats > 0 ? 'success' : 'warning'}">
+                                            <i class="fas fa-chair me-1"></i>Seats: ${bus.seatAvailability.availableSeats}/${bus.seatAvailability.totalSeats} available
+                                        </small>
+                                        <div class="mt-1">
+                                            <small class="text-muted">Occupied: ${bus.seatAvailability.occupiedSeats}</small>
+                                        </div>
+                                    </div>
+                                ` : `
+                                    <div class="mt-2 p-2 rounded" style="background-color: #f8f9fa; border: 1px solid #dee2e6;">
+                                        <small class="text-muted">
+                                            <i class="fas fa-chair me-1"></i>Seat info not available
+                                        </small>
+                                    </div>
+                                `}
+                            </div>
+                            <div class="col-md-3 text-end">
+                                <a href="/public/track/${bus._id}" class="btn btn-primary btn-sm mb-1 w-100">
+                                    <i class="fas fa-map-marker-alt me-1"></i>Track Bus
+                                </a>
+                                ${bus.seatAvailability && bus.seatAvailability.availableSeats > 0 ? `
+                                    <button class="btn btn-success btn-sm w-100" onclick="showSeatInfo('${bus._id}', '${bus.busNumber}', ${bus.seatAvailability.availableSeats}, ${bus.seatAvailability.totalSeats})">
+                                        <i class="fas fa-chair me-1"></i>View Seats
+                                    </button>
+                                ` : `
+                                    <button class="btn btn-secondary btn-sm w-100" disabled>
+                                        <i class="fas fa-ban me-1"></i>No Seats
+                                    </button>
+                                `}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            container.innerHTML = html;
+            document.getElementById('searchResults').classList.remove('d-none');
+        }
+
+        // Utility functions
+        function showLoading() {
+            document.getElementById('loadingState').classList.remove('d-none');
+        }
+
+        function hideLoading() {
+            document.getElementById('loadingState').classList.add('d-none');
+        }
+
+        function hideResults() {
+            document.getElementById('searchResults').classList.add('d-none');
+            document.getElementById('noResults').classList.add('d-none');
+        }
+
+        function showNoResults() {
+            document.getElementById('noResults').classList.remove('d-none');
+        }
+
+        function clearSearch() {
+            document.getElementById('fromStation').value = '';
+            document.getElementById('toStation').value = '';
+            hideResults();
+            document.getElementById('fromStation').focus();
+        }
+
+        function swapStations() {
+            const from = document.getElementById('fromStation').value;
+            const to = document.getElementById('toStation').value;
+            document.getElementById('fromStation').value = to;
+            document.getElementById('toStation').value = from;
+        }
+
+        function quickSearch(from, to) {
+            document.getElementById('fromStation').value = from;
+            document.getElementById('toStation').value = to;
+            performSearch();
+        }
+
+        // Record search for travel history
+        async function recordSearch(fromStation, toStation, selectedBus) {
+            try {
+                await fetch('/public/api/record-search', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        fromStation,
+                        toStation,
+                        busNumber: selectedBus?.busNumber,
+                        journeyId: selectedBus?._id
+                    })
+                });
+            } catch (error) {
+                console.error('Error recording search:', error);
+            }
+        }
+        
+        // Show seat information modal
+        let currentBusId = null;
+        function showSeatInfo(busId, busNumber, availableSeats, totalSeats) {
+            currentBusId = busId;
+            
+            document.getElementById('modalBusNumber').textContent = `Bus ${busNumber}`;
+            document.getElementById('modalTotalSeats').textContent = totalSeats;
+            document.getElementById('modalAvailableSeats').textContent = availableSeats;
+            document.getElementById('modalOccupiedSeats').textContent = totalSeats - availableSeats;
+            
+            new bootstrap.Modal(document.getElementById('seatInfoModal')).show();
+        }
+        
+        // Track bus from modal
+        function trackBus() {
+            if (currentBusId) {
+                window.location.href = `/public/track/${currentBusId}`;
+            }
+        }
+        
+        // Auto-focus on from station
+        document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('fromStation').focus();
+        });
+    </script>
+
+    <style>
+        .bus-result {
+            transition: all 0.2s ease-in-out;
+            background-color: #f8f9fa;
+        }
+
+        .bus-result:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            background-color: #fff;
+        }
+
+        .spinner-border {
+            width: 3rem;
+            height: 3rem;
+        }
+        
+        .seat-indicator {
+            width: 20px;
+            height: 20px;
+            border-radius: 4px;
+            border: 2px solid #333;
+        }
+        
+        .seat-indicator.available {
+            background-color: #28a745;
+            border-color: #1e7e34;
+        }
+        
+        .seat-indicator.occupied {
+            background-color: #dc3545;
+            border-color: #c82333;
+        }
+        
+        .modal-header {
+            border-radius: 0.375rem 0.375rem 0 0;
+        }
+        
+        .card.bg-light {
+            border: 1px solid #dee2e6;
+        }
+        
+        .alert-info {
+            border-left: 4px solid #17a2b8;
+        }
+    </style>
+</body>
+</html>

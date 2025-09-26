@@ -1,0 +1,39 @@
+# Netlify configuration for TrackWise
+# Static site hosted from /public
+[build]
+  publish = "public"
+  command = ""
+
+# Redirect API calls to your backend service.
+# Replace https://your-backend.example.com with your deployed backend URL (Render/Railway/Fly/Vercel).
+[[redirects]]
+  from = "/api/*"
+  to = "https://your-backend.example.com/api/:splat"
+  status = 200
+  force = true
+
+# Optional: if you serve other server routes via the backend, you can proxy them explicitly.
+# Uncomment and adjust as needed.
+# [[redirects]]
+#   from = "/auth/*"
+#   to = "https://your-backend.example.com/auth/:splat"
+#   status = 200
+#   force = true
+# [[redirects]]
+#   from = "/admin/*"
+#   to = "https://your-backend.example.com/admin/:splat"
+#   status = 200
+#   force = true
+# [[redirects]]
+#   from = "/public/*"
+#   to = "https://your-backend.example.com/public/:splat"
+#   status = 200
+#   force = true
+
+# Security headers
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "SAMEORIGIN"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"

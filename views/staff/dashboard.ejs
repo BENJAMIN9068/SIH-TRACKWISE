@@ -9,8 +9,10 @@
     <link href="/css/style.css" rel="stylesheet">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="/js/geocoding-service.js"></script>
 </head>
 <body>
+    
     <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
         <div class="container-fluid">
             <a class="navbar-brand" href="/staff/dashboard"><i class="fas fa-bus me-2"></i>Staff Dashboard</a>
@@ -24,6 +26,42 @@
     </nav>
 
     <div class="container my-4">
+        <!-- Stats Cards -->
+        <div class="row mb-4">
+            <div class="col-md-3 col-sm-6 mb-3">
+                <div class="card bg-primary text-white">
+                    <div class="card-body text-center">
+                        <h4><i class="fas fa-route me-2"></i><span id="activeJourneysCount"><%= activeJourneys.length %></span></h4>
+                        <p class="mb-0">Active Journeys</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 col-sm-6 mb-3">
+                <div class="card bg-success text-white">
+                    <div class="card-body text-center">
+                        <h4><i class="fas fa-check-circle me-2"></i><span id="completedJourneysCount">0</span></h4>
+                        <p class="mb-0">Completed Today</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 col-sm-6 mb-3">
+                <div class="card bg-info text-white">
+                    <div class="card-body text-center">
+                        <h4><i class="fas fa-road me-2"></i><span id="totalKmCount">0</span> km</h4>
+                        <p class="mb-0">Total Distance</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 col-sm-6 mb-3">
+                <div class="card bg-warning text-white">
+                    <div class="card-body text-center">
+                        <h4><i class="fas fa-clock me-2"></i><span id="hoursWorkedCount">0</span>h</h4>
+                        <p class="mb-0">Hours Worked</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
         <h2 class="mb-4">Active Journeys</h2>
         <div class="row">
             <% if (activeJourneys && activeJourneys.length) { %>
@@ -34,6 +72,14 @@
                                 <h5 class="card-title"><i class="fas fa-route me-2"></i><%= j.startingPoint %> → <%= j.destination %></h5>
                                 <p class="card-text mb-2"><strong>Route:</strong> <%= j.route %> <% if (j.highway) { %> | <strong>Highway:</strong> <%= j.highway %> <% } %></p>
                                 <p class="card-text mb-2"><strong>Bus:</strong> <%= j.busNumber %> | <strong>Status:</strong> <span class="badge <%= j.status === 'running' ? 'status-running' : (j.status === 'starting' ? 'status-starting' : 'status-completed') %>"><%= j.status %></span></p>
+                                <div class="mb-3">
+                                    <a href="/staff/seats/<%= j._id %>" class="btn btn-sm btn-success me-2">
+                                        <i class="fas fa-chair me-1"></i>Manage Seats
+                                    </a>
+                                    <button class="btn btn-sm btn-warning" onclick="updateStatus('<%= j._id %>', 'completed')">
+                                        <i class="fas fa-flag-checkered me-1"></i>Complete Journey
+                                    </button>
+                                </div>
                                 <div id="map-<%= j._id %>" style="height: 250px;"></div>
                             </div>
                         </div>
@@ -45,19 +91,537 @@
                 </div>
             <% } %>
         </div>
+        
+        <!-- Journey History Section -->
+        <div class="row mt-5">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5><i class="fas fa-history me-2"></i>Journey History</h5>
+                        <button class="btn btn-sm btn-outline-primary" onclick="refreshHistory()">
+                            <i class="fas fa-refresh me-1"></i>Refresh
+                        </button>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Date</th>
+                                        <th>Route</th>
+                                        <th>Bus Number</th>
+                                        <th>Distance (km)</th>
+                                        <th>Duration</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="journeyHistoryTable">
+                                    <tr>
+                                        <td colspan="6" class="text-center text-muted">Loading journey history...</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.2/socket.io.js"></script>
+    
+    <style>
+        .route-marker {
+            background: transparent;
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .start-marker {
+            background-color: #28a745 !important;
+            border: 2px solid white !important;
+            border-radius: 50%;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .end-marker {
+            background-color: #dc3545 !important;
+            border: 2px solid white !important;
+            border-radius: 50%;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .bus-marker {
+            background: transparent;
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .alert-sm {
+            padding: 8px 12px;
+            font-size: 0.875rem;
+        }
+    </style>
     <script>
         const journeys = <%- JSON.stringify(activeJourneys || []) %>;
-        journeys.forEach(j => {
-            const map = L.map(`map-${j._id}`).setView([20.5937, 78.9629], 5); // India center
-            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                maxZoom: 19
-            }).addTo(map);
-            if (j.currentLocation && j.currentLocation.coordinates) {
-                const [lng, lat] = j.currentLocation.coordinates;
-                const marker = L.marker([lat, lng]).addTo(map);
-                map.setView([lat, lng], 10);
+        const maps = {};
+        const markers = {};
+        let socket = null;
+        
+        // Initialize Socket.IO for real-time updates
+        function initSocket() {
+            socket = io();
+            
+            socket.on('connect', () => {
+                console.log('Connected to server for real-time updates');
+            });
+            
+            socket.on('locationUpdate', (data) => {
+                console.log('Location update received:', data);
+                updateJourneyMap(data.journeyId, data.location.lat, data.location.lng);
+            });
+        }
+        
+        // Update journey map with new location
+        function updateJourneyMap(journeyId, lat, lng) {
+            if (maps[journeyId] && markers[journeyId]) {
+                markers[journeyId].setLatLng([lat, lng]);
+                maps[journeyId].setView([lat, lng], 12);
+                
+                // Update popup
+                markers[journeyId].bindPopup(`
+                    <strong>Live Bus Location</strong><br>
+                    Coordinates: ${lat.toFixed(6)}, ${lng.toFixed(6)}<br>
+                    Updated: ${new Date().toLocaleTimeString()}
+                `);
+            }
+        }
+        
+        // Start GPS tracking for active journeys with enhanced error handling
+        function startGPSTracking() {
+            if (!navigator.geolocation) {
+                console.warn('Geolocation is not supported by this browser');
+                showGPSError('Geolocation not supported');
+                return;
+            }
+            
+            if (journeys.length === 0) {
+                console.info('No active journeys to track');
+                return;
+            }
+            
+            console.log('Starting GPS tracking for', journeys.length, 'active journeys');
+            
+            // First, check permissions
+            if ('permissions' in navigator) {
+                navigator.permissions.query({name:'geolocation'}).then(function(result) {
+                    console.log('Geolocation permission status:', result.state);
+                    if (result.state === 'granted') {
+                        beginGPSTracking();
+                    } else if (result.state === 'prompt') {
+                        // Will prompt user
+                        beginGPSTracking();
+                    } else {
+                        showGPSError('Location access denied. Please enable location permissions.');
+                    }
+                });
+            } else {
+                // Fallback for browsers that don't support permissions API
+                beginGPSTracking();
+            }
+        }
+        
+        // Begin actual GPS tracking
+        function beginGPSTracking() {
+            const watchId = navigator.geolocation.watchPosition(
+                (position) => {
+                    const { latitude, longitude } = position.coords;
+                    console.log('GPS position received:', latitude, longitude, 'accuracy:', position.coords.accuracy);
+                    
+                    // Clear any previous GPS errors
+                    clearGPSErrors();
+                    
+                    // Update location for all active journeys
+                    journeys.forEach(async journey => {
+                        if (journey.status === 'running' || journey.status === 'starting') {
+                            try {
+                                const response = await fetch('/staff/location/update', {
+                                    method: 'POST',
+                                    headers: {
+                                        'Content-Type': 'application/json',
+                                    },
+                                    body: JSON.stringify({
+                                        journeyId: journey._id,
+                                        lat: latitude,
+                                        lng: longitude,
+                                        accuracy: position.coords.accuracy
+                                    })
+                                });
+                                
+                                if (!response.ok) {
+                                    throw new Error(`HTTP ${response.status}`);
+                                }
+                                
+                                // Update local map immediately
+                                updateJourneyMap(journey._id, latitude, longitude);
+                                
+                                // Show success indicator
+                                showGPSStatus('success', `GPS tracking active (±${Math.round(position.coords.accuracy)}m)`);
+                                
+                            } catch (error) {
+                                console.error('Error updating location for journey', journey._id, ':', error);
+                                showGPSStatus('error', 'Failed to update location on server');
+                            }
+                        }
+                    });
+                },
+                (error) => {
+                    console.error('GPS tracking error:', error);
+                    let errorMessage = 'GPS tracking failed';
+                    
+                    switch(error.code) {
+                        case error.PERMISSION_DENIED:
+                            errorMessage = 'Location access denied. Please enable location permissions and reload.';
+                            break;
+                        case error.POSITION_UNAVAILABLE:
+                            errorMessage = 'Location information unavailable. Check your GPS/network.';
+                            break;
+                        case error.TIMEOUT:
+                            errorMessage = 'Location request timed out. Retrying...';
+                            // Retry after timeout
+                            setTimeout(() => beginGPSTracking(), 5000);
+                            break;
+                    }
+                    
+                    showGPSError(errorMessage);
+                },
+                { 
+                    enableHighAccuracy: true, 
+                    timeout: 15000, 
+                    maximumAge: 30000 
+                }
+            );
+            
+            console.log('GPS watch started with ID:', watchId);
+        }
+        
+        // Show GPS status indicator
+        function showGPSStatus(type, message) {
+            // Create or update GPS status indicator
+            let statusDiv = document.getElementById('gps-status');
+            if (!statusDiv) {
+                statusDiv = document.createElement('div');
+                statusDiv.id = 'gps-status';
+                statusDiv.style.cssText = 'position: fixed; top: 70px; right: 20px; z-index: 1000; max-width: 300px;';
+                document.body.appendChild(statusDiv);
+            }
+            
+            const alertClass = type === 'success' ? 'alert-success' : 'alert-danger';
+            const icon = type === 'success' ? 'check-circle' : 'exclamation-triangle';
+            
+            statusDiv.innerHTML = `
+                <div class="alert ${alertClass} alert-sm" style="margin: 0; font-size: 0.8rem;">
+                    <i class="fas fa-${icon} me-2"></i>${message}
+                </div>
+            `;
+            
+            // Auto-hide success messages
+            if (type === 'success') {
+                setTimeout(() => {
+                    if (statusDiv.parentNode) {
+                        statusDiv.parentNode.removeChild(statusDiv);
+                    }
+                }, 3000);
+            }
+        }
+        
+        // Show GPS error
+        function showGPSError(message) {
+            showGPSStatus('error', message);
+        }
+        
+        // Clear GPS errors
+        function clearGPSErrors() {
+            const statusDiv = document.getElementById('gps-status');
+            if (statusDiv && statusDiv.innerHTML.includes('alert-danger')) {
+                statusDiv.parentNode.removeChild(statusDiv);
+            }
+        }
+        
+        // Initialize maps for each journey with enhanced geocoding
+        const geocodingService = new GeocodingService();
+        
+        async function initializeJourneyMaps() {
+            for (const j of journeys) {
+                try {
+                    const mapElement = document.getElementById(`map-${j._id}`);
+                    if (!mapElement) continue;
+                    
+                    // Create map with better initial view
+                    const map = L.map(`map-${j._id}`, {
+                        zoomControl: true,
+                        attributionControl: true
+                    }).setView([20.5937, 78.9629], 5);
+                    
+                    // Add OpenStreetMap tiles
+                    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                        maxZoom: 19,
+                        attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                    }).addTo(map);
+                    
+                    maps[j._id] = map;
+                    
+                    // Plot route using real geocoding
+                    await plotJourneyRoute(j, map);
+                    
+                    // Add current bus location if available
+                    if (j.currentLocation && j.currentLocation.coordinates) {
+                        const [lng, lat] = j.currentLocation.coordinates;
+                        if (lat !== 0 && lng !== 0) {
+                            addBusMarkerToMap(j, map, lat, lng);
+                        }
+                    }
+                    
+                } catch (error) {
+                    console.error(`Error initializing map for journey ${j._id}:`, error);
+                    // Show fallback message
+                    const errorDiv = document.createElement('div');
+                    errorDiv.innerHTML = '<div class="alert alert-warning"><i class="fas fa-map"></i> Map initialization failed. Retrying...</div>';
+                    document.getElementById(`map-${j._id}`).appendChild(errorDiv);
+                }
+            }
+        }
+        
+        // Plot route using geocoding service
+        async function plotJourneyRoute(journey, map) {
+            try {
+                const startCoords = await geocodingService.getCoordinates(journey.startingPoint);
+                const endCoords = await geocodingService.getCoordinates(journey.destination);
+                
+                if (startCoords && endCoords) {
+                    // Draw route line
+                    await drawRouteOnMap(map, journey, startCoords, endCoords);
+                } else {
+                    console.warn(`Could not geocode route: ${journey.startingPoint} → ${journey.destination}`);
+                    // Show warning in map
+                    const warningDiv = document.createElement('div');
+                    warningDiv.innerHTML = `
+                        <div class="alert alert-info alert-sm m-2">
+                            <i class="fas fa-info-circle"></i> Route: ${journey.startingPoint} → ${journey.destination}<br>
+                            <small>Enable GPS to see live location</small>
+                        </div>
+                    `;
+                    document.getElementById(`map-${journey._id}`).appendChild(warningDiv);
+                }
+            } catch (error) {
+                console.error('Error plotting route:', error);
+            }
+        }
+        
+        // Draw route using OSRM or fallback to straight line
+        async function drawRouteOnMap(map, journey, startCoords, endCoords) {
+            try {
+                // Try OSRM routing first
+                const routeUrl = `https://router.project-osrm.org/route/v1/driving/${startCoords.lng},${startCoords.lat};${endCoords.lng},${endCoords.lat}?overview=full&geometries=geojson`;
+                
+                const response = await fetch(routeUrl);
+                const data = await response.json();
+                
+                if (data.routes && data.routes.length > 0) {
+                    const route = data.routes[0];
+                    const coordinates = route.geometry.coordinates.map(coord => [coord[1], coord[0]]);
+                    
+                    // Create route polyline
+                    const routePolyline = L.polyline(coordinates, {
+                        color: '#1976D2',
+                        weight: 4,
+                        opacity: 0.7
+                    }).addTo(map);
+                    
+                    // Add route info popup
+                    const distance = (route.distance / 1000).toFixed(1);
+                    const duration = Math.round(route.duration / 60);
+                    
+                    routePolyline.bindPopup(`
+                        <div style="text-align: center;">
+                            <strong>${journey.startingPoint} → ${journey.destination}</strong><br>
+                            <small>Distance: ${distance}km | Duration: ${duration}min</small>
+                        </div>
+                    `);
+                    
+                    // Fit map to show entire route
+                    map.fitBounds(routePolyline.getBounds(), { padding: [20, 20] });
+                } else {
+                    throw new Error('No route found');
+                }
+            } catch (error) {
+                console.warn('OSRM routing failed, using straight line:', error);
+                // Fallback to straight line
+                const straightLine = L.polyline([
+                    [startCoords.lat, startCoords.lng],
+                    [endCoords.lat, endCoords.lng]
+                ], {
+                    color: '#FF5722',
+                    weight: 3,
+                    opacity: 0.6,
+                    dashArray: '10, 10'
+                }).addTo(map);
+                
+                straightLine.bindPopup(`
+                    <div style="text-align: center;">
+                        <strong>${journey.startingPoint} → ${journey.destination}</strong><br>
+                        <small>Direct route (approximate)</small>
+                    </div>
+                `);
+                
+                // Fit map to show route
+                map.fitBounds(straightLine.getBounds(), { padding: [50, 50] });
+            }
+            
+            // Add start/end markers
+            addRouteMarkers(map, startCoords, endCoords, journey);
+        }
+        
+        // Add route start/end markers
+        function addRouteMarkers(map, startCoords, endCoords, journey) {
+            // Start marker (green)
+            const startIcon = L.divIcon({
+                html: '<i class="fas fa-play" style="color: white; font-size: 14px;"></i>',
+                className: 'route-marker start-marker',
+                iconSize: [25, 25],
+                iconAnchor: [12, 12]
+            });
+            
+            const startMarker = L.marker([startCoords.lat, startCoords.lng], { icon: startIcon })
+                .addTo(map)
+                .bindPopup(`<strong>Start:</strong> ${journey.startingPoint}`);
+            
+            // End marker (red)
+            const endIcon = L.divIcon({
+                html: '<i class="fas fa-flag" style="color: white; font-size: 14px;"></i>',
+                className: 'route-marker end-marker',
+                iconSize: [25, 25],
+                iconAnchor: [12, 12]
+            });
+            
+            const endMarker = L.marker([endCoords.lat, endCoords.lng], { icon: endIcon })
+                .addTo(map)
+                .bindPopup(`<strong>Destination:</strong> ${journey.destination}`);
+        }
+        
+        // Add bus marker to map
+        function addBusMarkerToMap(journey, map, lat, lng) {
+            const busIcon = L.divIcon({
+                html: '<i class="fas fa-bus" style="color: #ff4757; font-size: 20px;"></i>',
+                iconSize: [30, 30],
+                className: 'bus-marker',
+                iconAnchor: [15, 15]
+            });
+            
+            const marker = L.marker([lat, lng], { icon: busIcon }).addTo(map);
+            marker.bindPopup(`
+                <div style="text-align: center;">
+                    <strong>Bus ${journey.busNumber}</strong><br>
+                    ${journey.startingPoint} → ${journey.destination}<br>
+                    Status: <span class="badge bg-${journey.status === 'running' ? 'success' : 'warning'}">${journey.status}</span><br>
+                    <small>Live GPS: ${lat.toFixed(6)}, ${lng.toFixed(6)}</small>
+                </div>
+            `);
+            
+            markers[journey._id] = marker;
+            map.setView([lat, lng], 12);
+        }
+        
+        // Load journey history
+        async function loadJourneyHistory() {
+            try {
+                const response = await fetch('/staff/api/journey-history');
+                const data = await response.json();
+                
+                if (data.success) {
+                    updateHistoryTable(data.journeys);
+                    updateStatsCards(data.stats);
+                } else {
+                    document.getElementById('journeyHistoryTable').innerHTML = 
+                        '<tr><td colspan="6" class="text-center text-danger">Error loading history</td></tr>';
+                }
+            } catch (error) {
+                console.error('Error loading journey history:', error);
+                document.getElementById('journeyHistoryTable').innerHTML = 
+                    '<tr><td colspan="6" class="text-center text-danger">Error loading history</td></tr>';
+            }
+        }
+        
+        // Update history table
+        function updateHistoryTable(journeys) {
+            const tbody = document.getElementById('journeyHistoryTable');
+            
+            if (journeys.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted">No journey history found</td></tr>';
+                return;
+            }
+            
+            let html = '';
+            journeys.forEach(journey => {
+                const date = new Date(journey.startedAt).toLocaleDateString();
+                const duration = journey.completedAt ? 
+                    Math.round((new Date(journey.completedAt) - new Date(journey.startedAt)) / (1000 * 60 * 60)) + 'h' : 
+                    'N/A';
+                const statusClass = journey.status === 'completed' ? 'success' : 
+                                  journey.status === 'running' ? 'primary' : 'warning';
+                
+                html += `
+                    <tr>
+                        <td>${date}</td>
+                        <td><strong>${journey.startingPoint}</strong> → <strong>${journey.destination}</strong></td>
+                        <td>${journey.busNumber}</td>
+                        <td>${journey.distanceKm || 'N/A'} km</td>
+                        <td>${duration}</td>
+                        <td><span class="badge bg-${statusClass}">${journey.status}</span></td>
+                    </tr>
+                `;
+            });
+            
+            tbody.innerHTML = html;
+        }
+        
+        // Update stats cards
+        function updateStatsCards(stats) {
+            if (stats) {
+                document.getElementById('completedJourneysCount').textContent = stats.completedToday || 0;
+                document.getElementById('totalKmCount').textContent = stats.totalKm || 0;
+                document.getElementById('hoursWorkedCount').textContent = stats.hoursWorked || 0;
+            }
+        }
+        
+        // Refresh history
+        function refreshHistory() {
+            loadJourneyHistory();
+        }
+        
+        // Initialize everything when page loads
+        document.addEventListener('DOMContentLoaded', async () => {
+            try {
+                // Initialize socket connection
+                initSocket();
+                
+                // Initialize maps with geocoding
+                if (journeys.length > 0) {
+                    await initializeJourneyMaps();
+                    
+                    // Start GPS tracking after maps are ready
+                    setTimeout(startGPSTracking, 2000);
+                }
+                
+                // Load journey history
+                loadJourneyHistory();
+                
+            } catch (error) {
+                console.error('Error during dashboard initialization:', error);
             }
         });
     </script>

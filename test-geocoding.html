@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Geocoding Test - Indian Cities</title>
+    <style>
+        body { font-family: Arial; margin: 20px; }
+        .results { margin: 20px 0; padding: 15px; background: #f5f5f5; border-radius: 5px; }
+        .success { background: #d4edda; color: #155724; }
+        .error { background: #f8d7da; color: #721c24; }
+        .info { background: #d1ecf1; color: #0c5460; }
+        button { margin: 10px; padding: 10px 20px; }
+        .city-test { margin: 10px 0; padding: 10px; border: 1px solid #ddd; border-radius: 5px; }
+    </style>
+</head>
+<body>
+    <h1>🔍 Geocoding Test - Indian Cities</h1>
+    <p>Testing real geocoding using Nominatim API for various Indian cities</p>
+
+    <div>
+        <button onclick="testCity('Banaras')">Test Banaras</button>
+        <button onclick="testCity('Varanasi')">Test Varanasi</button>
+        <button onclick="testCity('Haldwani')">Test Haldwani</button>
+        <button onclick="testCity('Lucknow')">Test Lucknow</button>
+        <button onclick="testCity('Delhi')">Test Delhi</button>
+        <button onclick="testAllCities()">Test All Cities</button>
+        <button onclick="clearResults()">Clear Results</button>
+    </div>
+
+    <div id="results">
+        <div class="results info">
+            Click buttons above to test geocoding for different cities
+        </div>
+    </div>
+
+    <script src="public/js/geocoding-service.js"></script>
+    <script>
+        const geocodingService = new GeocodingService();
+        let testCount = 0;
+
+        function addResult(message, type = 'info') {
+            const resultsDiv = document.getElementById('results');
+            const resultElement = document.createElement('div');
+            resultElement.className = `results ${type}`;
+            resultElement.innerHTML = `<strong>#${++testCount}</strong> ${message}`;
+            resultsDiv.appendChild(resultElement);
+        }
+
+        async function testCity(cityName) {
+            addResult(`🔍 Testing geocoding for: ${cityName}`, 'info');
+            
+            try {
+                const coords = await geocodingService.getCoordinates(cityName);
+                
+                if (coords) {
+                    const message = `
+                        ✅ <strong>${cityName}</strong> found!<br>
+                        📍 Latitude: ${coords.lat}<br>
+                        📍 Longitude: ${coords.lng}<br>
+                        🏷️ Full Name: ${coords.display_name}<br>
+                        📊 Type: ${coords.type || 'N/A'}<br>
+                        ⭐ Importance: ${coords.importance || 'N/A'}
+                    `;
+                    addResult(message, 'success');
+                } else {
+                    addResult(`❌ <strong>${cityName}</strong> not found`, 'error');
+                }
+            } catch (error) {
+                addResult(`💥 Error testing ${cityName}: ${error.message}`, 'error');
+            }
+        }
+
+        async function testAllCities() {
+            const cities = ['Banaras', 'Varanasi', 'Haldwani', 'Lucknow', 'Delhi', 'Mumbai', 'Bangalore', 'Chennai'];
+            addResult(`🚀 Testing all cities: ${cities.join(', ')}`, 'info');
+            
+            for (const city of cities) {
+                await testCity(city);
+                // Small delay to avoid overwhelming the API
+                await new Promise(resolve => setTimeout(resolve, 200));
+            }
+            
+            addResult(`✅ Completed testing all ${cities.length} cities`, 'success');
+        }
+
+        function clearResults() {
+            document.getElementById('results').innerHTML = `
+                <div class="results info">
+                    Results cleared. Click buttons above to test geocoding for different cities
+                </div>
+            `;
+            testCount = 0;
+        }
+
+        // Test cache functionality
+        console.log('Geocoding service initialized with cache:', geocodingService.cache);
+    </script>
+</body>
+</html>

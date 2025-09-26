@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Live Buses - Admin</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet" />
+  <link href="/css/style.css" rel="stylesheet" />
+  <!-- Leaflet CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <!-- Leaflet JS -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="/js/geocoding-service.js"></script>
+  <script src="/js/leaflet-maps-service.js"></script>
+</head>
+<body>
+  <nav class="navbar navbar-expand-lg navbar-dark bg-success">
+    <div class="container-fluid">
+      <a class="navbar-brand" href="/admin/dashboard"><i class="fas fa-shield-alt me-2"></i>Admin Dashboard</a>
+      <div class="navbar-nav me-auto">
+        <a class="nav-link active" href="/admin/live-buses">Live Buses</a>
+        <a class="nav-link" href="/admin/staff-db">Staff DB</a>
+        <a class="nav-link" href="/admin/public-db">Public DB</a>
+        <a class="nav-link" href="/admin/buses-running">Buses Map</a>
+      </div>
+      <div class="d-flex">
+        <form action="/auth/logout" method="post">
+          <button class="btn btn-outline-light" type="submit">Logout</button>
+        </form>
+      </div>
+    </div>
+  </nav>
+
+  <div class="container-fluid my-4">
+    <h2 class="mb-4"><i class="fas fa-eye me-2"></i>Live Buses</h2>
+    
+    <div class="row">
+      <!-- Map Section -->
+      <div class="col-lg-8">
+        <div class="card">
+          <div class="card-header">
+            <div class="d-flex justify-content-between align-items-center">
+              <h5 class="mb-0"><i class="fas fa-map me-2"></i>Live Bus Routes</h5>
+              <div>
+                <button class="btn btn-sm btn-outline-primary" onclick="fitMapToBuses()" title="Fit to all buses">
+                  <i class="fas fa-expand-arrows-alt"></i> Fit Map
+                </button>
+                <a href="/admin/buses-running" class="btn btn-sm btn-primary ms-2">
+                  <i class="fas fa-external-link-alt"></i> Full Map
+                </a>
+              </div>
+            </div>
+          </div>
+          <div class="card-body p-0">
+            <div id="liveBusesMap" style="height: 400px;"></div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Buses List -->
+      <div class="col-lg-4">
+        <div class="card">
+          <div class="card-header">
+            <h5 class="mb-0"><i class="fas fa-list me-2"></i>Bus Details</h5>
+          </div>
+          <div class="card-body p-0" style="max-height: 400px; overflow-y: auto;">
+            <% if (liveBuses && liveBuses.length) { %>
+              <div class="list-group list-group-flush">
+                <% liveBuses.forEach((b, index) => { %>
+                  <div class="list-group-item bus-detail-item" data-bus-id="<%= b._id %>">
+                    <div class="d-flex justify-content-between align-items-start">
+                      <div class="flex-grow-1">
+                        <h6 class="mb-1"><strong><%= b.busNumber %></strong></h6>
+                        <p class="mb-1 text-primary small"><%= b.startingPoint %> → <%= b.destination %></p>
+                        <p class="mb-1 small text-muted">Route: <%= b.route %> <% if (b.highway) { %>| Hwy: <%= b.highway %><% } %></p>
+                        <div class="d-flex justify-content-between align-items-center">
+                          <span class="badge <%= b.status === 'running' ? 'bg-success' : 'bg-warning' %> small"><%= b.status %></span>
+                          <% if (b.currentLocation && b.currentLocation.coordinates) { %>
+                            <button class="btn btn-sm btn-outline-primary" onclick="focusOnBus('<%= b._id %>')" title="Show on map">
+                              <i class="fas fa-crosshairs"></i>
+                            </button>
+                          <% } %>
+                        </div>
+                        <% if (b.staffUser) { %>
+                          <small class="text-muted">Staff: <%= b.staffUser.name || 'N/A' %></small>
+                        <% } %>
+                        <% if (b.seatInfo && b.seatInfo.totalSeats > 0) { %>
+                          <div class="mt-1">
+                            <small class="text-muted">
+                              <i class="fas fa-chair me-1"></i>
+                              Seats: <span class="text-<%= b.seatInfo.availableSeats > 0 ? 'success' : 'danger' %>"><%= b.seatInfo.availableSeats %>/<%= b.seatInfo.totalSeats %> available</span>
+                            </small>
+                          </div>
+                        <% } %>
+                      </div>
+                    </div>
+                  </div>
+                <% }) %>
+              </div>
+            <% } else { %>
+              <div class="p-3 text-center text-muted">
+                <i class="fas fa-bus fa-2x mb-2"></i>
+                <p>No live buses at the moment.</p>
+              </div>
+            <% } %>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Traditional Table View (Toggle) -->
+    <div class="row mt-4">
+      <div class="col-12">
+        <div class="card">
+          <div class="card-header">
+            <div class="d-flex justify-content-between align-items-center">
+              <h5 class="mb-0"><i class="fas fa-table me-2"></i>Detailed Table View</h5>
+              <button class="btn btn-sm btn-outline-secondary" onclick="toggleTableView()" id="tableToggleBtn">
+                <i class="fas fa-eye"></i> Show Table
+              </button>
+            </div>
+          </div>
+          <div class="card-body p-0" id="tableView" style="display: none;">
+            <% if (liveBuses && liveBuses.length) { %>
+              <div class="table-responsive">
+                <table class="table table-striped table-hover mb-0">
+                  <thead class="table-dark">
+                    <tr>
+                      <th>Bus</th>
+                      <th>Route</th>
+                      <th>Status</th>
+                      <th>Staff</th>
+                      <th>Seats</th>
+                      <th>Last Known Location</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <% liveBuses.forEach(b => { %>
+                      <tr>
+                        <td><strong><%= b.busNumber %></strong></td>
+                        <td>
+                          <%= b.startingPoint %> → <%= b.destination %><br />
+                          <small class="text-muted">Route: <%= b.route %> <% if (b.highway) { %>| Hwy: <%= b.highway %><% } %></small>
+                        </td>
+                        <td>
+                          <span class="badge <%= b.status === 'running' ? 'bg-success' : 'bg-warning' %>"><%= b.status %></span>
+                        </td>
+                        <td>
+                          <% if (b.staffUser) { %>
+                            <%= b.staffUser.name || 'N/A' %>
+                            <br /><small class="text-muted"><%= b.staffUser.role || '' %></small>
+                          <% } else { %>
+                            <span class="text-muted">N/A</span>
+                          <% } %>
+                        </td>
+                        <td>
+                          <% if (b.seatInfo && b.seatInfo.totalSeats > 0) { %>
+                            <div class="seat-status-small">
+                              <span class="badge bg-primary"><%= b.seatInfo.availableSeats %>/<%= b.seatInfo.totalSeats %></span>
+                              <small class="text-muted d-block">Seats Available</small>
+                            </div>
+                          <% } else { %>
+                            <small class="text-muted">Not configured</small>
+                          <% } %>
+                        </td>
+                        <td>
+                          <% if (b.currentLocation && b.currentLocation.coordinates) { %>
+                            <% const [lng, lat] = b.currentLocation.coordinates; %>
+                            <small>Lat: <%= lat %>, Lng: <%= lng %></small>
+                          <% } else { %>
+                            <small class="text-muted">Unknown</small>
+                          <% } %>
+                        </td>
+                      </tr>
+                    <% }) %>
+                  </tbody>
+                </table>
+              </div>
+            <% } else { %>
+              <div class="alert alert-info">No live buses at the moment.</div>
+            <% } %>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let mapsService;
+    let activeBuses = new Map();
+
+    // Initialize page 
+    function initLiveBusesPage() {
+      initMap();
+      initBuses();
+    }
+
+    // Initialize OpenStreetMap
+    async function initMap() {
+      try {
+        mapsService = new LeafletMapsService();
+        await mapsService.initMap('liveBusesMap', {
+          zoom: 6,
+          center: [20.5937, 78.9629] // India center
+        });
+        console.log('Live buses map initialized with OpenStreetMap');
+      } catch (error) {
+        console.error('Error initializing map:', error);
+      }
+    }
+
+    // Initialize buses on map
+    function initBuses() {
+      const liveBuses = <%- JSON.stringify(liveBuses || []) %>;
+      
+      liveBuses.forEach(bus => {
+        if (bus.currentLocation && bus.currentLocation.coordinates) {
+          const [lng, lat] = bus.currentLocation.coordinates;
+          addBusToMap(bus, lat, lng);
+        }
+      });
+      
+      // Fit map to show all buses after a short delay
+      if (mapsService && liveBuses.length > 0) {
+        setTimeout(() => mapsService.fitAllJourneys(), 1000);
+      }
+    }
+
+    // Add bus to map
+    function addBusToMap(bus, lat, lng) {
+      if (!mapsService || !mapsService.isInitialized) {
+        console.warn('MapsService not ready');
+        return;
+      }
+
+      const busInfo = {
+        busNumber: bus.busNumber,
+        route: `${bus.startingPoint} → ${bus.destination}`,
+        status: bus.status,
+        driverName: bus.driverName,
+        conductorName: bus.conductorName
+      };
+
+      // Plot route if start and end points are available
+      if (bus.startingPoint && bus.destination) {
+        mapsService.plotRoute(bus.startingPoint, bus.destination, bus._id, {
+          routeColor: bus.status === 'running' ? '#28a745' : '#ffc107'
+        });
+      }
+
+      // Add bus location marker
+      mapsService.updateBusLocation(bus._id, lat, lng, busInfo);
+      activeBuses.set(bus._id, bus);
+    }
+
+    // Focus on specific bus
+    function focusOnBus(busId) {
+      if (mapsService && mapsService.busMarkers[busId]?.bus) {
+        const busMarker = mapsService.busMarkers[busId].bus;
+        const busPosition = busMarker.getLatLng();
+        mapsService.map.setView(busPosition, 13);
+        
+        // Open popup if it exists
+        busMarker.openPopup();
+        
+        // Highlight the bus in the list
+        document.querySelectorAll('.bus-detail-item').forEach(item => {
+          item.classList.remove('active');
+        });
+        const busItem = document.querySelector(`[data-bus-id="${busId}"]`);
+        if (busItem) {
+          busItem.classList.add('active');
+          setTimeout(() => busItem.classList.remove('active'), 3000);
+        }
+      }
+    }
+
+    // Fit map to show all buses
+    function fitMapToBuses() {
+      if (mapsService && mapsService.isInitialized) {
+        mapsService.fitAllJourneys();
+      }
+    }
+
+    // Toggle table view
+    function toggleTableView() {
+      const tableView = document.getElementById('tableView');
+      const toggleBtn = document.getElementById('tableToggleBtn');
+      
+      if (tableView.style.display === 'none') {
+        tableView.style.display = 'block';
+        toggleBtn.innerHTML = '<i class="fas fa-eye-slash"></i> Hide Table';
+      } else {
+        tableView.style.display = 'none';
+        toggleBtn.innerHTML = '<i class="fas fa-eye"></i> Show Table';
+      }
+    }
+
+    // Initialize when page loads
+    document.addEventListener('DOMContentLoaded', function() {
+      // Wait for Leaflet to load, then initialize
+      if (typeof L !== 'undefined') {
+        initLiveBusesPage();
+      } else {
+        setTimeout(() => initLiveBusesPage(), 500);
+      }
+    });
+  </script>
+
+  <style>
+    .bus-detail-item:hover {
+      background-color: #f8f9fa !important;
+    }
+    
+    .bus-detail-item.active {
+      background-color: #e3f2fd !important;
+      border-left: 4px solid #2196f3 !important;
+    }
+    
+    #liveBusesMap {
+      border-radius: 0.375rem;
+    }
+    
+    .gm-style-iw {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+    
+    .list-group-item {
+      border-left: none;
+      border-right: none;
+    }
+    
+    .list-group-item:first-child {
+      border-top: none;
+    }
+    
+    .list-group-item:last-child {
+      border-bottom: none;
+    }
+  </style>
+</body>
+</html>
+

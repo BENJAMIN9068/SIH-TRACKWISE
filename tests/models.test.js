@@ -1,5 +1,4 @@
 const StaffUser = require('../models/StaffUser');
-const PublicUser = require('../models/PublicUser');
 const Journey = require('../models/Journey');
 
 describe('Models', () => {
@@ -12,7 +11,7 @@ describe('Models', () => {
         employeeId: 'EMP001',
         name: 'Test Staff',
         phone: '1234567890',
-        role: 'conductor'
+        role: 'conductor',
       };
 
       const staff = new StaffUser(staffData);
@@ -27,7 +26,7 @@ describe('Models', () => {
 
     it('should not create a staff user without required fields', async () => {
       const staff = new StaffUser({});
-      
+
       let error;
       try {
         await staff.save();
@@ -49,7 +48,7 @@ describe('Models', () => {
         employeeId: 'EMP001',
         name: 'Test Staff',
         phone: '1234567890',
-        role: 'conductor'
+        role: 'conductor',
       };
 
       const staff = new StaffUser(staffData);
@@ -74,7 +73,7 @@ describe('Models', () => {
         employeeId: 'EMP001',
         name: 'Test Staff',
         phone: '1234567890',
-        role: 'conductor'
+        role: 'conductor',
       });
       await staffUser.save();
     });
@@ -87,7 +86,7 @@ describe('Models', () => {
         route: 'NH1',
         busNumber: 'DL01AB1234',
         driverName: 'John Doe',
-        conductorName: 'Jane Doe'
+        conductorName: 'Jane Doe',
       };
 
       const journey = new Journey(journeyData);
@@ -107,22 +106,22 @@ describe('Models', () => {
         route: 'NH1',
         busNumber: 'DL01AB1234',
         driverName: 'John Doe',
-        conductorName: 'Jane Doe'
+        conductorName: 'Jane Doe',
       });
       await journey.save();
 
       journey.currentLocation = {
         type: 'Point',
-        coordinates: [77.2090, 28.6139] // Delhi coordinates
+        coordinates: [77.209, 28.6139], // Delhi coordinates
       };
       journey.path.push({
-        coordinates: [77.2090, 28.6139],
-        timestamp: new Date()
+        coordinates: [77.209, 28.6139],
+        timestamp: new Date(),
       });
 
       const updatedJourney = await journey.save();
 
-      expect(updatedJourney.currentLocation.coordinates).toEqual([77.2090, 28.6139]);
+      expect(updatedJourney.currentLocation.coordinates).toEqual([77.209, 28.6139]);
       expect(updatedJourney.path).toHaveLength(1);
     });
   });

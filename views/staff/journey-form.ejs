@@ -217,6 +217,15 @@
                 conductorName: document.getElementById('conductorName').value
             };
             
+            // Add current GPS coordinates if available
+            if (currentPosition) {
+                formData.initialLat = currentPosition.coords.latitude;
+                formData.initialLng = currentPosition.coords.longitude;
+                console.log('Adding GPS coordinates:', formData.initialLat, formData.initialLng);
+            } else {
+                console.warn('No GPS location available');
+            }
+            
             try {
                 const response = await fetch('/staff/journey', {
                     method: 'POST',

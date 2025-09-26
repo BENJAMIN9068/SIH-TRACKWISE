@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - Bus Tracking System</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="/css/style.css" rel="stylesheet">
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-success">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="/admin/dashboard"><i class="fas fa-shield-alt me-2"></i>Admin Dashboard</a>
+            <div class="navbar-nav me-auto">
+                <a class="nav-link" href="/admin/live-buses">Live Buses</a>
+                <a class="nav-link" href="/admin/staff-db">Staff DB</a>
+                <a class="nav-link" href="/admin/public-db">Public DB</a>
+                <a class="nav-link" href="/admin/buses-running">Buses Map</a>
+                <div class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                        Password Resets
+                    </a>
+                    <ul class="dropdown-menu">
+                        <li><a class="dropdown-item" href="/admin/staff-password-requests">Staff Requests</a></li>
+                        <li><a class="dropdown-item" href="/admin/public-password-requests">Public Requests</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="d-flex">
+                <form action="/auth/logout" method="post">
+                    <button class="btn btn-outline-light" type="submit">Logout</button>
+                </form>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container-fluid my-4">
+        <h2 class="mb-4"><i class="fas fa-tachometer-alt me-2"></i>System Overview</h2>
+        
+        <!-- Statistics Cards -->
+        <div class="row mb-4">
+            <div class="col-md-2">
+                <div class="card text-white bg-primary">
+                    <div class="card-header">
+                        <i class="fas fa-bus"></i> Running Buses
+                    </div>
+                    <div class="card-body">
+                        <h1 class="display-4"><%= stats.runningBuses %></h1>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-2">
+                <div class="card text-white bg-warning">
+                    <div class="card-header">
+                        <i class="fas fa-play"></i> Starting
+                    </div>
+                    <div class="card-body">
+                        <h1 class="display-4"><%= stats.startingBuses %></h1>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-2">
+                <div class="card text-white bg-success">
+                    <div class="card-header">
+                        <i class="fas fa-check"></i> Completed
+                    </div>
+                    <div class="card-body">
+                        <h1 class="display-4"><%= stats.completedJourneys %></h1>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card text-white bg-info">
+                    <div class="card-header">
+                        <i class="fas fa-users"></i> Total Staff
+                    </div>
+                    <div class="card-body">
+                        <h1 class="display-4"><%= stats.totalStaff %></h1>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card text-white bg-secondary">
+                    <div class="card-header">
+                        <i class="fas fa-user-friends"></i> Public Users
+                    </div>
+                    <div class="card-body">
+                        <h1 class="display-4"><%= stats.totalPublicUsers %></h1>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Journeys Table -->
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="fas fa-history me-2"></i>Recent Journeys</h5>
+            </div>
+            <div class="card-body">
+                <% if (recentJourneys && recentJourneys.length > 0) { %>
+                    <div class="table-responsive">
+                        <table class="table table-striped table-hover">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th>Bus Number</th>
+                                    <th>Route</th>
+                                    <th>Staff</th>
+                                    <th>Status</th>
+                                    <th>Started At</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <% recentJourneys.forEach(journey => { %>
+                                    <tr>
+                                        <td><strong><%= journey.busNumber %></strong></td>
+                                        <td>
+                                            <%= journey.startingPoint %> → <%= journey.destination %>
+                                            <br><small class="text-muted">Route: <%= journey.route %></small>
+                                        </td>
+                                        <td>
+                                            <% if (journey.staffUser) { %>
+                                                <%= journey.staffUser.name %>
+                                                <br><small class="text-muted"><%= journey.staffUser.role %></small>
+                                            <% } else { %>
+                                                <span class="text-muted">N/A</span>
+                                            <% } %>
+                                        </td>
+                                        <td>
+                                            <span class="badge <%= journey.status === 'running' ? 'bg-success' : journey.status === 'starting' ? 'bg-warning' : 'bg-secondary' %>">
+                                                <%= journey.status %>
+                                            </span>
+                                        </td>
+                                        <td><%= new Date(journey.startedAt).toLocaleString() %></td>
+                                        <td>
+                                            <% if (journey.status !== 'completed') { %>
+                                                <div class="btn-group" role="group">
+                                                    <% if (journey.status === 'starting') { %>
+                                                        <button class="btn btn-sm btn-success" onclick="updateStatus('<%= journey._id %>', 'running')">Start</button>
+                                                    <% } %>
+                                                    <% if (journey.status === 'running') { %>
+                                                        <button class="btn btn-sm btn-secondary" onclick="updateStatus('<%= journey._id %>', 'completed')">Complete</button>
+                                                    <% } %>
+                                                </div>
+                                            <% } %>
+                                        </td>
+                                    </tr>
+                                <% }) %>
+                            </tbody>
+                        </table>
+                    </div>
+                <% } else { %>
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i>No recent journeys found.
+                    </div>
+                <% } %>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="row mt-4">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h5><i class="fas fa-bolt me-2"></i>Quick Actions</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="d-grid gap-2">
+                            <a href="/admin/live-buses" class="btn btn-primary">
+                                <i class="fas fa-eye me-2"></i>View Live Buses
+                            </a>
+                            <a href="/admin/buses-running" class="btn btn-info">
+                                <i class="fas fa-map me-2"></i>View Buses Map
+                            </a>
+                            <a href="/admin/staff-db" class="btn btn-success">
+                                <i class="fas fa-users me-2"></i>Manage Staff
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h5><i class="fas fa-chart-bar me-2"></i>System Health</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <label class="form-label">Active Buses</label>
+                            <div class="progress">
+                                <div class="progress-bar bg-success" role="progressbar" style="width: <%= Math.round((stats.runningBuses / Math.max(stats.runningBuses + stats.startingBuses + stats.completedJourneys, 1)) * 100) %>%"></div>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Staff Utilization</label>
+                            <div class="progress">
+                                <div class="progress-bar bg-info" role="progressbar" style="width: <%= Math.min(Math.round((stats.runningBuses / Math.max(stats.totalStaff, 1)) * 100), 100) %>%"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Auto refresh every 30 seconds
+        setTimeout(() => {
+            location.reload();
+        }, 30000);
+
+        // Update journey status
+        async function updateStatus(journeyId, status) {
+            try {
+                const response = await fetch(`/admin/journey/${journeyId}/status`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ status })
+                });
+
+                const result = await response.json();
+                if (result.success) {
+                    location.reload();
+                } else {
+                    alert('Error updating status: ' + result.error);
+                }
+            } catch (error) {
+                alert('Error updating status: ' + error.message);
+            }
+        }
+    </script>
+</body>
+</html>

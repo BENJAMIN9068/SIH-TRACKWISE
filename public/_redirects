@@ -1,0 +1,3 @@
+# API proxy to your backend (if you prefer file-based redirects)
+# Replace with your backend domain
+/api/*  https://your-backend.example.com/api/:splat  200!

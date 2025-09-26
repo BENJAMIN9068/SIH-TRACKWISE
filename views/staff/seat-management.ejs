@@ -1,0 +1,741 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Seat Management - <%= journey.busNumber %></title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .bus-layout {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 20px;
+            padding: 20px;
+            margin: 20px 0;
+            position: relative;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+        
+        .bus-header {
+            text-align: center;
+            color: white;
+            margin-bottom: 20px;
+            font-weight: bold;
+        }
+        
+        .driver-area {
+            background: #2c3e50;
+            color: white;
+            padding: 10px;
+            border-radius: 10px;
+            text-align: center;
+            margin-bottom: 15px;
+            position: relative;
+        }
+        
+        .steering-wheel {
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 24px;
+        }
+        
+        .seat-row {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 10px;
+            gap: 20px;
+        }
+        
+        .seat-group {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .seat {
+            width: 45px;
+            height: 45px;
+            border: 2px solid #34495e;
+            border-radius: 8px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 12px;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        
+        .seat.available {
+            background-color: #2ecc71;
+            color: white;
+            border-color: #27ae60;
+        }
+        
+        .seat.occupied {
+            background-color: #e74c3c;
+            color: white;
+            border-color: #c0392b;
+        }
+        
+        .seat.available:hover {
+            background-color: #27ae60;
+            transform: scale(1.1);
+        }
+        
+        .seat.occupied:hover {
+            background-color: #c0392b;
+            transform: scale(1.1);
+        }
+        
+        .aisle {
+            width: 30px;
+            height: 45px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: rgba(255,255,255,0.5);
+            font-style: italic;
+            font-size: 12px;
+        }
+        
+        .seat-legend {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin: 20px 0;
+            flex-wrap: wrap;
+        }
+        
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 12px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 20px;
+            color: white;
+            font-size: 14px;
+        }
+        
+        .legend-seat {
+            width: 20px;
+            height: 20px;
+            border-radius: 4px;
+        }
+        
+        .seat-info-panel {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        
+        .quick-stats {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .stat-card {
+            flex: 1;
+            min-width: 120px;
+            background: linear-gradient(45deg, #3498db, #2980b9);
+            color: white;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+        }
+        
+        .stat-number {
+            font-size: 24px;
+            font-weight: bold;
+            display: block;
+        }
+        
+        .stat-label {
+            font-size: 12px;
+            opacity: 0.9;
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .modal-body .form-group {
+            margin-bottom: 15px;
+        }
+        
+        @media (max-width: 768px) {
+            .bus-layout {
+                padding: 15px;
+                margin: 10px 0;
+            }
+            
+            .seat {
+                width: 35px;
+                height: 35px;
+                font-size: 10px;
+            }
+            
+            .aisle {
+                width: 20px;
+                height: 35px;
+            }
+            
+            .quick-stats {
+                flex-direction: column;
+            }
+            
+            .action-buttons {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container">
+            <a class="navbar-brand" href="/staff/dashboard">
+                <i class="fas fa-bus me-2"></i>Staff Dashboard
+            </a>
+            <div class="navbar-nav ms-auto">
+                <a class="nav-link" href="/staff/dashboard">
+                    <i class="fas fa-arrow-left me-1"></i>Back to Dashboard
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container-fluid py-4">
+        <div class="row">
+            <div class="col-12">
+                <div class="text-center mb-4">
+                    <h2><i class="fas fa-chair me-2"></i>Seat Management</h2>
+                    <p class="text-muted">Bus <%= journey.busNumber %> - <%= journey.startingPoint %> → <%= journey.destination %></p>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <!-- Bus Layout -->
+            <div class="col-lg-8">
+                <div class="bus-layout">
+                    <div class="bus-header">
+                        <h4><i class="fas fa-bus me-2"></i><%= journey.busNumber %></h4>
+                        <small><%= journey.route %></small>
+                    </div>
+                    
+                    <div class="driver-area">
+                        <i class="fas fa-user me-2"></i>Driver: <%= journey.driverName %>
+                        <i class="fas fa-steering-wheel steering-wheel"></i>
+                    </div>
+                    
+                    <!-- Seat Layout will be generated by JavaScript -->
+                    <div id="seatLayout">
+                        <!-- Initial setup message -->
+                        <div class="text-center text-white py-4" id="setupMessage">
+                            <i class="fas fa-cog fa-2x mb-3"></i>
+                            <h5>Seat Layout Not Configured</h5>
+                            <p>Please initialize the seat layout for this bus</p>
+                            <button class="btn btn-warning" onclick="showSetupModal()">
+                                <i class="fas fa-plus me-2"></i>Setup Seats
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="seat-legend" id="seatLegend" style="display: none;">
+                        <div class="legend-item">
+                            <div class="legend-seat available"></div>
+                            <span>Available</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-seat occupied"></div>
+                            <span>Occupied</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Control Panel -->
+            <div class="col-lg-4">
+                <div class="seat-info-panel">
+                    <h5><i class="fas fa-chart-bar me-2"></i>Seat Statistics</h5>
+                    
+                    <div class="quick-stats">
+                        <div class="stat-card">
+                            <span class="stat-number" id="totalSeats">--</span>
+                            <span class="stat-label">Total Seats</span>
+                        </div>
+                        <div class="stat-card">
+                            <span class="stat-number" id="availableSeats">--</span>
+                            <span class="stat-label">Available</span>
+                        </div>
+                        <div class="stat-card">
+                            <span class="stat-number" id="occupiedSeats">--</span>
+                            <span class="stat-label">Occupied</span>
+                        </div>
+                    </div>
+                    
+                    <div class="action-buttons">
+                        <button class="btn btn-primary" onclick="showSetupModal()" id="setupBtn">
+                            <i class="fas fa-cog me-2"></i>Setup Seats
+                        </button>
+                        <button class="btn btn-success" onclick="showAddPassengerModal()" id="addPassengerBtn" style="display: none;">
+                            <i class="fas fa-user-plus me-2"></i>Add Passenger
+                        </button>
+                        <button class="btn btn-info" onclick="refreshSeatMap()" id="refreshBtn" style="display: none;">
+                            <i class="fas fa-sync me-2"></i>Refresh
+                        </button>
+                        <button class="btn btn-warning" onclick="bulkUpdateSeats()" id="bulkUpdateBtn" style="display: none;">
+                            <i class="fas fa-edit me-2"></i>Bulk Update
+                        </button>
+                    </div>
+
+                    <!-- Recent Activity -->
+                    <div class="mt-4" id="recentActivity" style="display: none;">
+                        <h6><i class="fas fa-history me-2"></i>Recent Activity</h6>
+                        <div id="activityList" class="small text-muted">
+                            No recent activity
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Setup Modal -->
+    <div class="modal fade" id="setupModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="fas fa-cog me-2"></i>Setup Seat Layout</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="setupForm">
+                        <div class="form-group">
+                            <label for="totalSeats" class="form-label">Total Number of Seats</label>
+                            <input type="number" class="form-control" id="totalSeatsInput" min="1" max="60" value="40" required>
+                            <small class="form-text text-muted">Enter the total number of passenger seats</small>
+                        </div>
+                        <div class="form-group">
+                            <label for="seatsPerRow" class="form-label">Seats Per Row</label>
+                            <select class="form-control" id="seatsPerRowInput">
+                                <option value="4">4 (2+2 configuration)</option>
+                                <option value="5">5 (2+3 configuration)</option>
+                                <option value="6">6 (3+3 configuration)</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="rows" class="form-label">Number of Rows</label>
+                            <input type="number" class="form-control" id="rowsInput" min="1" max="20" readonly>
+                            <small class="form-text text-muted">Automatically calculated</small>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" onclick="initializeSeats()">
+                        <i class="fas fa-check me-2"></i>Initialize Seats
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Passenger Modal -->
+    <div class="modal fade" id="passengerModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="passengerModalTitle">
+                        <i class="fas fa-user me-2"></i>Seat Information
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="passengerForm">
+                        <input type="hidden" id="selectedSeat" value="">
+                        <div class="form-group">
+                            <label for="passengerName" class="form-label">Passenger Name</label>
+                            <input type="text" class="form-control" id="passengerName" placeholder="Enter passenger name">
+                        </div>
+                        <div class="form-group">
+                            <label for="boardedAt" class="form-label">Boarded At</label>
+                            <input type="text" class="form-control" id="boardedAt" value="<%= journey.startingPoint %>">
+                        </div>
+                        <div class="form-group">
+                            <label for="destination" class="form-label">Destination</label>
+                            <input type="text" class="form-control" id="destination" value="<%= journey.destination %>">
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-success" id="occupySeatBtn" onclick="occupySeat()">
+                        <i class="fas fa-check me-2"></i>Occupy Seat
+                    </button>
+                    <button type="button" class="btn btn-danger" id="freeSeatBtn" onclick="freeSeat()" style="display: none;">
+                        <i class="fas fa-times me-2"></i>Free Seat
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        let journeyId = '<%= journey._id %>';
+        let currentSeatInfo = null;
+        let seatMap = [];
+
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', function() {
+            loadSeatStatus();
+            calculateRows();
+        });
+
+        // Calculate rows automatically when inputs change
+        document.getElementById('totalSeatsInput').addEventListener('input', calculateRows);
+        document.getElementById('seatsPerRowInput').addEventListener('change', calculateRows);
+
+        function calculateRows() {
+            const totalSeats = parseInt(document.getElementById('totalSeatsInput').value) || 0;
+            const seatsPerRow = parseInt(document.getElementById('seatsPerRowInput').value) || 4;
+            const rows = Math.ceil(totalSeats / seatsPerRow);
+            document.getElementById('rowsInput').value = rows;
+        }
+
+        // Load current seat status
+        async function loadSeatStatus() {
+            try {
+                const response = await fetch(`/api/seats/status/${journeyId}`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    currentSeatInfo = data.seatInfo;
+                    
+                    if (currentSeatInfo.totalSeats > 0) {
+                        await loadSeatMap();
+                    } else {
+                        showSetupMessage();
+                    }
+                    
+                    updateStatistics();
+                } else {
+                    console.error('Failed to load seat status:', data.error);
+                    showSetupMessage();
+                }
+            } catch (error) {
+                console.error('Error loading seat status:', error);
+                showSetupMessage();
+            }
+        }
+
+        // Load detailed seat map
+        async function loadSeatMap() {
+            try {
+                const response = await fetch(`/api/seats/map/${journeyId}`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    seatMap = data.seatMap;
+                    currentSeatInfo = data.seatInfo;
+                    renderSeatMap();
+                    showSeatControls();
+                }
+            } catch (error) {
+                console.error('Error loading seat map:', error);
+            }
+        }
+
+        // Show setup message
+        function showSetupMessage() {
+            document.getElementById('setupMessage').style.display = 'block';
+            document.getElementById('seatLegend').style.display = 'none';
+            document.getElementById('addPassengerBtn').style.display = 'none';
+            document.getElementById('refreshBtn').style.display = 'none';
+            document.getElementById('bulkUpdateBtn').style.display = 'none';
+            document.getElementById('recentActivity').style.display = 'none';
+        }
+
+        // Show seat controls
+        function showSeatControls() {
+            document.getElementById('setupMessage').style.display = 'none';
+            document.getElementById('seatLegend').style.display = 'flex';
+            document.getElementById('addPassengerBtn').style.display = 'inline-block';
+            document.getElementById('refreshBtn').style.display = 'inline-block';
+            document.getElementById('bulkUpdateBtn').style.display = 'inline-block';
+            document.getElementById('recentActivity').style.display = 'block';
+        }
+
+        // Render seat map
+        function renderSeatMap() {
+            const seatLayout = document.getElementById('seatLayout');
+            seatLayout.innerHTML = '';
+            
+            seatMap.forEach((row, rowIndex) => {
+                const rowDiv = document.createElement('div');
+                rowDiv.className = 'seat-row';
+                
+                // Split seats into groups (left and right side)
+                const leftSeats = row.slice(0, Math.floor(row.length / 2));
+                const rightSeats = row.slice(Math.floor(row.length / 2));
+                
+                // Left group
+                const leftGroup = document.createElement('div');
+                leftGroup.className = 'seat-group';
+                leftSeats.forEach(seat => {
+                    leftGroup.appendChild(createSeatElement(seat));
+                });
+                
+                // Aisle
+                const aisle = document.createElement('div');
+                aisle.className = 'aisle';
+                aisle.innerHTML = '⬆️';
+                
+                // Right group
+                const rightGroup = document.createElement('div');
+                rightGroup.className = 'seat-group';
+                rightSeats.forEach(seat => {
+                    rightGroup.appendChild(createSeatElement(seat));
+                });
+                
+                rowDiv.appendChild(leftGroup);
+                rowDiv.appendChild(aisle);
+                rowDiv.appendChild(rightGroup);
+                seatLayout.appendChild(rowDiv);
+            });
+        }
+
+        // Create seat element
+        function createSeatElement(seat) {
+            const seatDiv = document.createElement('div');
+            seatDiv.className = `seat ${seat.isOccupied ? 'occupied' : 'available'}`;
+            seatDiv.textContent = seat.seatNumber;
+            seatDiv.onclick = () => showSeatModal(seat);
+            
+            if (seat.isOccupied) {
+                seatDiv.title = `Occupied by ${seat.passenger.name}`;
+            } else {
+                seatDiv.title = `Seat ${seat.seatNumber} - Available`;
+            }
+            
+            return seatDiv;
+        }
+
+        // Update statistics
+        function updateStatistics() {
+            if (currentSeatInfo) {
+                document.getElementById('totalSeats').textContent = currentSeatInfo.totalSeats || 0;
+                document.getElementById('availableSeats').textContent = currentSeatInfo.availableSeats || 0;
+                document.getElementById('occupiedSeats').textContent = 
+                    (currentSeatInfo.totalSeats || 0) - (currentSeatInfo.availableSeats || 0);
+            }
+        }
+
+        // Show setup modal
+        function showSetupModal() {
+            new bootstrap.Modal(document.getElementById('setupModal')).show();
+        }
+
+        // Show add passenger modal
+        function showAddPassengerModal() {
+            // Find first available seat
+            const availableSeat = seatMap.flat().find(seat => !seat.isOccupied);
+            if (availableSeat) {
+                showSeatModal(availableSeat);
+            } else {
+                alert('No available seats');
+            }
+        }
+
+        // Show seat modal
+        function showSeatModal(seat) {
+            const modal = document.getElementById('passengerModal');
+            const title = document.getElementById('passengerModalTitle');
+            const occupyBtn = document.getElementById('occupySeatBtn');
+            const freeBtn = document.getElementById('freeSeatBtn');
+            
+            document.getElementById('selectedSeat').value = seat.seatNumber;
+            
+            if (seat.isOccupied) {
+                title.innerHTML = `<i class="fas fa-user me-2"></i>Seat ${seat.seatNumber} - Occupied`;
+                document.getElementById('passengerName').value = seat.passenger.name || '';
+                document.getElementById('boardedAt').value = seat.passenger.boardedAt || '';
+                document.getElementById('destination').value = seat.passenger.destination || '';
+                
+                // Make fields readonly for occupied seats
+                document.getElementById('passengerName').readOnly = true;
+                document.getElementById('boardedAt').readOnly = true;
+                document.getElementById('destination').readOnly = true;
+                
+                occupyBtn.style.display = 'none';
+                freeBtn.style.display = 'inline-block';
+            } else {
+                title.innerHTML = `<i class="fas fa-plus me-2"></i>Occupy Seat ${seat.seatNumber}`;
+                document.getElementById('passengerName').value = '';
+                document.getElementById('boardedAt').value = '<%= journey.startingPoint %>';
+                document.getElementById('destination').value = '<%= journey.destination %>';
+                
+                // Make fields editable for available seats
+                document.getElementById('passengerName').readOnly = false;
+                document.getElementById('boardedAt').readOnly = false;
+                document.getElementById('destination').readOnly = false;
+                
+                occupyBtn.style.display = 'inline-block';
+                freeBtn.style.display = 'none';
+            }
+            
+            new bootstrap.Modal(modal).show();
+        }
+
+        // Initialize seats
+        async function initializeSeats() {
+            const totalSeats = document.getElementById('totalSeatsInput').value;
+            const seatsPerRow = document.getElementById('seatsPerRowInput').value;
+            const rows = document.getElementById('rowsInput').value;
+            
+            console.log('Initializing seats with:', { totalSeats, seatsPerRow, rows, journeyId });
+            
+            try {
+                const response = await fetch(`/api/seats/initialize/${journeyId}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        totalSeats: parseInt(totalSeats),
+                        seatsPerRow: parseInt(seatsPerRow),
+                        rows: parseInt(rows)
+                    }),
+                });
+                
+                console.log('Response status:', response.status);
+                const data = await response.json();
+                console.log('Response data:', data);
+                
+                if (response.ok && data.success) {
+                    bootstrap.Modal.getInstance(document.getElementById('setupModal')).hide();
+                    await loadSeatStatus();
+                    alert('Seat layout initialized successfully!');
+                } else {
+                    console.error('Server error:', data);
+                    alert('Error: ' + (data.error || 'Unknown error occurred'));
+                }
+            } catch (error) {
+                console.error('Network error initializing seats:', error);
+                alert('Failed to initialize seats: ' + error.message);
+            }
+        }
+
+        // Occupy seat
+        async function occupySeat() {
+            const seatNumber = document.getElementById('selectedSeat').value;
+            const passengerName = document.getElementById('passengerName').value;
+            const boardedAt = document.getElementById('boardedAt').value;
+            const destination = document.getElementById('destination').value;
+            
+            if (!passengerName.trim()) {
+                alert('Please enter passenger name');
+                return;
+            }
+            
+            try {
+                const response = await fetch(`/api/seats/occupy/${journeyId}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        seatNumber,
+                        passengerName,
+                        boardedAt,
+                        destination
+                    }),
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    bootstrap.Modal.getInstance(document.getElementById('passengerModal')).hide();
+                    await loadSeatMap();
+                    updateStatistics();
+                    addActivity(`Seat ${seatNumber} occupied by ${passengerName}`);
+                } else {
+                    alert('Error: ' + data.error);
+                }
+            } catch (error) {
+                console.error('Error occupying seat:', error);
+                alert('Failed to occupy seat');
+            }
+        }
+
+        // Free seat
+        async function freeSeat() {
+            const seatNumber = document.getElementById('selectedSeat').value;
+            
+            if (confirm(`Are you sure you want to free seat ${seatNumber}?`)) {
+                try {
+                    const response = await fetch(`/api/seats/free/${journeyId}`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            seatNumber
+                        }),
+                    });
+                    
+                    const data = await response.json();
+                    
+                    if (data.success) {
+                        bootstrap.Modal.getInstance(document.getElementById('passengerModal')).hide();
+                        await loadSeatMap();
+                        updateStatistics();
+                        addActivity(`Seat ${seatNumber} freed`);
+                    } else {
+                        alert('Error: ' + data.error);
+                    }
+                } catch (error) {
+                    console.error('Error freeing seat:', error);
+                    alert('Failed to free seat');
+                }
+            }
+        }
+
+        // Refresh seat map
+        function refreshSeatMap() {
+            loadSeatMap();
+        }
+
+        // Bulk update seats (placeholder)
+        function bulkUpdateSeats() {
+            alert('Bulk update feature coming soon! You can click individual seats to manage them.');
+        }
+
+        // Add activity to recent activity list
+        function addActivity(message) {
+            const activityList = document.getElementById('activityList');
+            const time = new Date().toLocaleTimeString();
+            activityList.innerHTML = `<div>${time} - ${message}</div>` + activityList.innerHTML;
+            
+            // Keep only last 5 activities
+            const activities = activityList.querySelectorAll('div');
+            if (activities.length > 5) {
+                for (let i = 5; i < activities.length; i++) {
+                    activities[i].remove();
+                }
+            }
+        }
+    </script>
+</body>
+</html>

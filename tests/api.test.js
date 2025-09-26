@@ -25,7 +25,7 @@ describe('API Routes', () => {
       employeeId: 'EMP001',
       name: 'Test Staff',
       phone: '1234567890',
-      role: 'conductor'
+      role: 'conductor',
     });
     await staffUser.save();
 
@@ -42,8 +42,8 @@ describe('API Routes', () => {
       status: 'running',
       currentLocation: {
         type: 'Point',
-        coordinates: [77.2090, 28.6139]
-      }
+        coordinates: [77.209, 28.6139],
+      },
     });
     await journey.save();
   });
@@ -62,10 +62,7 @@ describe('API Routes', () => {
     });
 
     it('should return 400 if from or to parameters are missing', async () => {
-      const response = await request(app)
-        .get('/api/search')
-        .query({ from: 'Delhi' })
-        .expect(400);
+      const response = await request(app).get('/api/search').query({ from: 'Delhi' }).expect(400);
 
       expect(response.body.error).toBe('From and To parameters are required');
     });
@@ -83,20 +80,16 @@ describe('API Routes', () => {
 
   describe('GET /api/bus/:id/location', () => {
     it('should get bus location by ID', async () => {
-      const response = await request(app)
-        .get(`/api/bus/${journey._id}/location`)
-        .expect(200);
+      const response = await request(app).get(`/api/bus/${journey._id}/location`).expect(200);
 
       expect(response.body.bus).toBeDefined();
       expect(response.body.bus.busNumber).toBe('DL01AB1234');
-      expect(response.body.bus.currentLocation.coordinates).toEqual([77.2090, 28.6139]);
+      expect(response.body.bus.currentLocation.coordinates).toEqual([77.209, 28.6139]);
     });
 
     it('should return 404 for non-existent bus ID', async () => {
       const fakeId = new mongoose.Types.ObjectId();
-      const response = await request(app)
-        .get(`/api/bus/${fakeId}/location`)
-        .expect(404);
+      const response = await request(app).get(`/api/bus/${fakeId}/location`).expect(404);
 
       expect(response.body.error).toBe('Bus not found');
     });
@@ -104,9 +97,7 @@ describe('API Routes', () => {
 
   describe('GET /api/buses/active', () => {
     it('should get all active buses', async () => {
-      const response = await request(app)
-        .get('/api/buses/active')
-        .expect(200);
+      const response = await request(app).get('/api/buses/active').expect(200);
 
       expect(response.body.buses).toBeDefined();
       expect(response.body.buses).toHaveLength(1);
@@ -118,9 +109,7 @@ describe('API Routes', () => {
       journey.status = 'completed';
       await journey.save();
 
-      const response = await request(app)
-        .get('/api/buses/active')
-        .expect(200);
+      const response = await request(app).get('/api/buses/active').expect(200);
 
       expect(response.body.buses).toHaveLength(0);
     });

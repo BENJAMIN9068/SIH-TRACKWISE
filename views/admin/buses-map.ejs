@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Live Buses Map - Admin</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="/css/style.css" rel="stylesheet">
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="/js/geocoding-service.js"></script>
+    <script src="/js/leaflet-maps-service.js"></script>
+    <script src="/socket.io/socket.io.js"></script>
+</head>
+<body>
+    
+    <nav class="navbar navbar-expand-lg navbar-dark bg-success">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="/admin/dashboard"><i class="fas fa-shield-alt me-2"></i>Admin Dashboard</a>
+            <div class="navbar-nav me-auto">
+                <a class="nav-link" href="/admin/live-buses">Live Buses</a>
+                <a class="nav-link" href="/admin/staff-db">Staff DB</a>
+                <a class="nav-link" href="/admin/public-db">Public DB</a>
+                <a class="nav-link active" href="/admin/buses-running">Buses Map</a>
+            </div>
+            <div class="d-flex">
+                <form action="/auth/logout" method="post">
+                    <button class="btn btn-outline-light" type="submit">Logout</button>
+                </form>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Map Section -->
+            <div class="col-md-8">
+                <div class="card mt-3">
+                    <div class="card-header">
+                        <h5><i class="fas fa-map me-2"></i>Live Bus Locations</h5>
+                    </div>
+                    <div class="card-body p-0">
+                        <div id="map" style="height: 600px;"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Buses List -->
+            <div class="col-md-4">
+                <div class="card mt-3">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5><i class="fas fa-bus me-2"></i>Active Buses</h5>
+                        <span class="badge bg-primary" id="busCount">0</span>
+                    </div>
+                    <div class="card-body p-0" style="max-height: 600px; overflow-y: auto;">
+                        <div id="busList">
+                            <div class="p-3 text-center text-muted">
+                                Loading buses...
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let mapsService;
+        let socket;
+        let activeBuses = new Map();
+
+        // Initialize page 
+        function initPage() {
+            initMap();
+            initBuses();
+            initSocket();
+            
+            // Refresh data every 30 seconds
+            setInterval(refreshBusData, 30000);
+        }
+
+        // Initialize OpenStreetMap
+        async function initMap() {
+            try {
+                mapsService = new LeafletMapsService();
+                await mapsService.initMap('map', {
+                    zoom: 6,
+                    center: [20.5937, 78.9629] // India center
+                });
+                console.log('OpenStreetMap initialized successfully');
+            } catch (error) {
+                console.error('Error initializing OpenStreetMap:', error);
+            }
+        }
+
+        // Initialize buses on map
+        function initBuses() {
+            const runningBuses = <%- JSON.stringify(runningBuses || []) %>;
+            
+            runningBuses.forEach(bus => {
+                if (bus.currentLocation && bus.currentLocation.coordinates) {
+                    const [lng, lat] = bus.currentLocation.coordinates;
+                    addBusToMap(bus, lat, lng);
+                }
+            });
+
+            updateBusList(runningBuses);
+            updateBusCount(runningBuses.length);
+            
+            // Fit map to show all buses
+            if (mapsService && runningBuses.length > 0) {
+                setTimeout(() => mapsService.fitAllJourneys(), 1000);
+            }
+        }
+
+        // Add bus to Google Maps
+        function addBusToMap(bus, lat, lng) {
+            if (!mapsService || !mapsService.isInitialized) {
+                console.warn('MapsService not initialized yet');
+                return;
+            }
+
+            const busInfo = {
+                busNumber: bus.busNumber,
+                route: `${bus.startingPoint} → ${bus.destination}`,
+                status: bus.status,
+                driverName: bus.driverName,
+                conductorName: bus.conductorName
+            };
+
+            // Plot route if start and end points are available
+            if (bus.startingPoint && bus.destination) {
+                mapsService.plotRoute(bus.startingPoint, bus.destination, bus._id, {
+                    routeColor: bus.status === 'running' ? '#4CAF50' : '#FF9800'
+                });
+            }
+
+            // Add bus location marker
+            mapsService.updateBusLocation(bus._id, lat, lng, busInfo);
+            
+            // Store active bus
+            activeBuses.set(bus._id, bus);
+        }
+
+        // Update bus marker position
+        function updateBusMarker(busId, lat, lng, busInfo) {
+            // Check for valid coordinates
+            if (!lat || !lng || isNaN(lat) || isNaN(lng) || lat === 0 || lng === 0) {
+                console.warn('Invalid coordinates for bus:', busId, lat, lng);
+                return;
+            }
+            
+            if (!mapsService || !mapsService.isInitialized) {
+                console.warn('MapsService not initialized yet');
+                return;
+            }
+
+            const updatedBusInfo = {
+                busNumber: busInfo?.busNumber || 'Unknown',
+                route: `${busInfo?.startingPoint || 'N/A'} → ${busInfo?.destination || 'N/A'}`,
+                status: busInfo?.status || 'unknown',
+                driverName: busInfo?.driverName || 'Unknown',
+                conductorName: busInfo?.conductorName || 'Unknown'
+            };
+
+            // Update bus location
+            mapsService.updateBusLocation(busId, lat, lng, updatedBusInfo);
+            
+            // If this is a new bus and we have route info, plot the route
+            if (!activeBuses.has(busId) && busInfo?.startingPoint && busInfo?.destination) {
+                mapsService.plotRoute(busInfo.startingPoint, busInfo.destination, busId, {
+                    routeColor: busInfo.status === 'running' ? '#4CAF50' : '#FF9800'
+                });
+                activeBuses.set(busId, busInfo);
+            }
+        }
+
+        // Update buses list in sidebar
+        function updateBusList(buses) {
+            const busList = document.getElementById('busList');
+            
+            if (buses.length === 0) {
+                busList.innerHTML = '<div class="p-3 text-center text-muted">No active buses</div>';
+                return;
+            }
+
+            let html = '';
+            buses.forEach(bus => {
+                const statusClass = bus.status === 'running' ? 'success' : 'warning';
+                html += `
+                    <div class="border-bottom p-3 bus-item" data-bus-id="${bus._id}">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <h6 class="mb-1"><strong>${bus.busNumber}</strong></h6>
+                                <p class="mb-1 small">${bus.startingPoint} → ${bus.destination}</p>
+                                <p class="mb-1 small text-muted">Route: ${bus.route}</p>
+                                <span class="badge bg-${statusClass} small">${bus.status}</span>
+                            </div>
+                            <button class="btn btn-sm btn-outline-primary" onclick="focusBus('${bus._id}')">
+                                <i class="fas fa-crosshairs"></i>
+                            </button>
+                        </div>
+                    </div>
+                `;
+            });
+            busList.innerHTML = html;
+        }
+
+        // Focus on specific bus
+        function focusBus(busId) {
+            if (mapsService && mapsService.busMarkers[busId]?.bus) {
+                const busMarker = mapsService.busMarkers[busId].bus;
+                mapsService.map.setCenter(busMarker.getPosition());
+                mapsService.map.setZoom(13);
+                
+                // Open info window if it exists
+                if (busMarker.infoWindow) {
+                    busMarker.infoWindow.open(mapsService.map, busMarker);
+                }
+            }
+        }
+
+        // Update bus count
+        function updateBusCount(count) {
+            document.getElementById('busCount').textContent = count;
+        }
+
+        // Initialize Socket.IO connection
+        function initSocket() {
+            socket = io();
+            
+            // Join admin room for updates
+            socket.emit('joinRoom', 'admin');
+            console.log('Joining admin room for real-time updates');
+            
+            // Listen for location updates
+            socket.on('adminLocationUpdate', (data) => {
+                console.log('Admin location update received:', data);
+                updateBusMarker(data.journeyId, data.location.lat, data.location.lng, data);
+                
+                // Update the bus item in the list
+                const busItem = document.querySelector(`[data-bus-id="${data.journeyId}"]`);
+                if (busItem) {
+                    const statusBadge = busItem.querySelector('.badge');
+                    if (statusBadge && data.status) {
+                        statusBadge.textContent = data.status;
+                        statusBadge.className = `badge ${data.status === 'running' ? 'bg-success' : 'bg-warning'} small`;
+                    }
+                    
+                    // Add last updated indicator
+                    let lastUpdated = busItem.querySelector('.last-updated');
+                    if (!lastUpdated) {
+                        lastUpdated = document.createElement('small');
+                        lastUpdated.className = 'text-muted last-updated d-block';
+                        busItem.querySelector('div > div').appendChild(lastUpdated);
+                    }
+                    lastUpdated.textContent = `Updated: ${new Date().toLocaleTimeString()}`;
+                }
+            });
+            
+            // Listen for general location updates
+            socket.on('locationUpdate', (data) => {
+                console.log('General location update:', data);
+                updateBusMarker(data.journeyId, data.location.lat, data.location.lng, data);
+            });
+
+            // Handle connection events
+            socket.on('connect', () => {
+                console.log('Connected to server');
+                socket.emit('joinRoom', 'admin'); // Re-join room on reconnect
+            });
+
+            socket.on('disconnect', () => {
+                console.log('Disconnected from server');
+            });
+        }
+
+        // Refresh bus data periodically
+        function refreshBusData() {
+            if (!mapsService || !mapsService.isInitialized) {
+                console.warn('MapsService not ready for refresh');
+                return;
+            }
+
+            fetch('/admin/api/live-locations')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.buses) {
+                        // Get current journey IDs
+                        const currentJourneyIds = new Set(data.buses.map(bus => bus._id));
+                        const activeJourneyIds = new Set(activeBuses.keys());
+
+                        // Remove journeys that are no longer active
+                        activeJourneyIds.forEach(journeyId => {
+                            if (!currentJourneyIds.has(journeyId)) {
+                                mapsService.removeJourney(journeyId);
+                                activeBuses.delete(journeyId);
+                            }
+                        });
+
+                        // Update or add current buses
+                        data.buses.forEach(bus => {
+                            if (bus.currentLocation && bus.currentLocation.coordinates) {
+                                const [lng, lat] = bus.currentLocation.coordinates;
+                                
+                                if (activeBuses.has(bus._id)) {
+                                    // Update existing bus
+                                    updateBusMarker(bus._id, lat, lng, bus);
+                                } else {
+                                    // Add new bus
+                                    addBusToMap(bus, lat, lng);
+                                }
+                            }
+                        });
+
+                        updateBusList(data.buses);
+                        updateBusCount(data.buses.length);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error refreshing bus data:', error);
+                });
+        }
+
+        // Auto-fit map to show all buses
+        function fitMapToBuses() {
+            if (mapsService && mapsService.isInitialized) {
+                mapsService.fitAllJourneys();
+            }
+        }
+
+        // Initialize everything when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            // Wait for Leaflet to load, then initialize
+            if (typeof L !== 'undefined') {
+                initPage();
+            } else {
+                setTimeout(() => initPage(), 500);
+            }
+        });
+    </script>
+
+    <style>
+        .bus-item:hover {
+            background-color: #f8f9fa;
+            cursor: pointer;
+        }
+        
+        #map {
+            border-radius: 0.375rem;
+        }
+        
+        .gm-style-iw {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        .gm-style-iw-chr {
+            display: none !important;
+        }
+    </style>
+</body>
+</html>
