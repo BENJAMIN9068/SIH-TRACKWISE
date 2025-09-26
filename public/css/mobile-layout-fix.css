@@ -1,0 +1,330 @@
+/* Mobile Layout Fix - Fix positioning of all elements on mobile devices */
+
+/* Ensure proper viewport and prevent overflow issues */
+html {
+    -webkit-text-size-adjust: 100%;
+    -ms-text-size-adjust: 100%;
+}
+
+body {
+    -webkit-overflow-scrolling: touch;
+    overflow-x: hidden;
+    min-height: 100vh;
+}
+
+/* Fix Bootstrap container issues on mobile */
+.container-fluid {
+    padding-left: 15px !important;
+    padding-right: 15px !important;
+    width: 100% !important;
+    max-width: 100vw !important;
+    overflow-x: hidden;
+}
+
+/* Mobile-specific fixes */
+@media (max-width: 768px) {
+    /* Fix main content positioning */
+    .container,
+    .container-fluid {
+        padding-left: 10px !important;
+        padding-right: 10px !important;
+        margin: 0 !important;
+    }
+    
+    /* Fix navbar on mobile */
+    .navbar {
+        padding: 0.5rem 1rem !important;
+        margin-bottom: 0 !important;
+    }
+    
+    .navbar-brand {
+        font-size: 1rem !important;
+        padding: 0.25rem 0 !important;
+    }
+    
+    /* Fix card layouts */
+    .card {
+        margin-bottom: 1rem !important;
+        border-radius: 8px !important;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1) !important;
+    }
+    
+    .card-header {
+        padding: 0.75rem 1rem !important;
+        border-radius: 8px 8px 0 0 !important;
+    }
+    
+    .card-body {
+        padding: 1rem !important;
+    }
+    
+    /* Fix row/column spacing */
+    .row {
+        margin-left: -10px !important;
+        margin-right: -10px !important;
+    }
+    
+    .col,
+    [class*="col-"] {
+        padding-left: 10px !important;
+        padding-right: 10px !important;
+    }
+    
+    /* Fix map container specifically */
+    .card-body.p-0 {
+        padding: 0 !important;
+        overflow: hidden;
+    }
+    
+    /* Ensure map fills card properly */
+    #map {
+        border-radius: 0 0 8px 8px !important;
+        margin: 0 !important;
+        width: 100% !important;
+        display: block !important;
+    }
+    
+    /* Fix buttons and controls */
+    .btn {
+        padding: 0.375rem 0.75rem !important;
+        font-size: 0.875rem !important;
+    }
+    
+    .btn-sm {
+        padding: 0.25rem 0.5rem !important;
+        font-size: 0.75rem !important;
+    }
+    
+    /* Fix badges and status indicators */
+    .badge {
+        font-size: 0.75rem !important;
+        padding: 0.25em 0.5em !important;
+    }
+    
+    /* Fix text and headings */
+    h1, h2, h3, h4, h5, h6 {
+        word-wrap: break-word;
+        line-height: 1.2;
+    }
+    
+    h4 {
+        font-size: 1.25rem !important;
+    }
+    
+    h5 {
+        font-size: 1.1rem !important;
+    }
+    
+    /* Fix progress bars */
+    .progress {
+        height: 1rem !important;
+        margin-bottom: 0.5rem !important;
+    }
+    
+    /* Fix location details card */
+    .card .card-body p {
+        margin-bottom: 0.5rem !important;
+        font-size: 0.875rem !important;
+    }
+    
+    /* Fix quick actions buttons */
+    .d-grid .btn {
+        margin-bottom: 0.5rem !important;
+    }
+    
+    /* Fix status indicators */
+    .text-success,
+    .text-danger,
+    .text-warning {
+        font-weight: 500 !important;
+    }
+    
+    /* Fix journey progress section */
+    .d-flex.justify-content-between {
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+    
+    /* Fix coordinates display */
+    small {
+        font-size: 0.75rem !important;
+        line-height: 1.3 !important;
+    }
+}
+
+/* Portrait mobile specific */
+@media (max-width: 480px) {
+    .container,
+    .container-fluid {
+        padding-left: 8px !important;
+        padding-right: 8px !important;
+    }
+    
+    .card-header h5,
+    .card-header h4 {
+        font-size: 1rem !important;
+    }
+    
+    /* Make buttons full width on small screens */
+    .btn-group .btn {
+        flex: 1;
+        font-size: 0.75rem !important;
+    }
+}
+
+/* Landscape mobile fixes */
+@media (max-width: 768px) and (orientation: landscape) {
+    /* Adjust map height for landscape */
+    #map {
+        height: 70vh !important;
+        min-height: 300px !important;
+    }
+    
+    /* Make info panels scrollable */
+    .card-body[style*="max-height"] {
+        max-height: 300px !important;
+        overflow-y: auto !important;
+    }
+}
+
+/* Fix for Bootstrap grid system edge cases */
+@media (max-width: 768px) {
+    .col-lg-8,
+    .col-lg-4,
+    .col-md-8,
+    .col-md-4 {
+        width: 100% !important;
+        max-width: 100% !important;
+        flex: 0 0 100% !important;
+    }
+    
+    /* Stack elements vertically on mobile */
+    .row > [class*="col-"] {
+        margin-bottom: 1rem;
+    }
+    
+    .row > [class*="col-"]:last-child {
+        margin-bottom: 0;
+    }
+}
+
+/* Fix input and form elements */
+@media (max-width: 768px) {
+    .input-group {
+        width: 100% !important;
+    }
+    
+    .form-control {
+        font-size: 16px !important; /* Prevents iOS zoom */
+    }
+    
+    .modal-dialog {
+        margin: 1rem !important;
+        max-width: calc(100% - 2rem) !important;
+    }
+}
+
+/* Fix navbar collapse on mobile */
+@media (max-width: 991px) {
+    .navbar-collapse {
+        border-top: 1px solid rgba(255,255,255,0.1);
+        margin-top: 0.5rem;
+        padding-top: 0.5rem;
+    }
+    
+    .navbar-nav {
+        flex-direction: column;
+        width: 100%;
+    }
+    
+    .navbar-nav .nav-link {
+        padding: 0.5rem 0;
+        text-align: left;
+    }
+}
+
+/* Fix specific TrackWise layout issues */
+.bus-info-card,
+.journey-progress-card,
+.quick-actions-card {
+    margin-bottom: 1rem !important;
+}
+
+/* Ensure all text is readable */
+@media (max-width: 768px) {
+    .text-muted {
+        color: #6c757d !important;
+        font-size: 0.875rem !important;
+    }
+    
+    .text-small,
+    .small {
+        font-size: 0.8rem !important;
+    }
+    
+    /* Fix coordinate display */
+    .coordinates-display {
+        font-family: monospace;
+        font-size: 0.75rem !important;
+        word-break: break-all;
+    }
+}
+
+/* Fix loading states */
+.loading-text {
+    text-align: center;
+    padding: 2rem 1rem;
+    color: #6c757d;
+}
+
+/* Fix any fixed-position elements that might interfere */
+@media (max-width: 768px) {
+    .position-fixed {
+        z-index: 1050 !important;
+    }
+    
+    .position-sticky {
+        position: relative !important;
+    }
+}
+
+/* Ensure proper scrolling */
+.overflow-auto {
+    -webkit-overflow-scrolling: touch !important;
+}
+
+/* Fix any flexbox issues */
+@media (max-width: 768px) {
+    .d-flex.align-items-center {
+        align-items: flex-start !important;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+    
+    .justify-content-between {
+        justify-content: flex-start !important;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+}
+
+/* Emergency fix for completely broken layouts */
+@media (max-width: 768px) {
+    * {
+        box-sizing: border-box !important;
+    }
+    
+    html, body {
+        overflow-x: hidden !important;
+        width: 100% !important;
+    }
+    
+    /* Force everything to respect viewport width */
+    .container,
+    .container-fluid,
+    .row,
+    [class*="col-"] {
+        max-width: 100vw !important;
+        overflow-x: hidden !important;
+    }
+}

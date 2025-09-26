@@ -260,6 +260,45 @@ class MobileMapsFix {
         });
     }
 
+    // Force layout recalculation - fixes positioning issues
+    forceLayoutRecalc() {
+        console.log('Forcing layout recalculation...');
+        
+        // Force reflow on all major containers
+        const containers = document.querySelectorAll('.container, .container-fluid, .card, .row');
+        containers.forEach(container => {
+            if (container.offsetHeight > 0) {
+                const originalDisplay = container.style.display;
+                container.style.display = 'none';
+                container.offsetHeight; // Force reflow
+                container.style.display = originalDisplay || '';
+            }
+        });
+        
+        // Force map containers to recalculate
+        const maps = this.findAllMaps();
+        maps.forEach(mapElement => {
+            const parent = mapElement.parentElement;
+            if (parent) {
+                parent.style.height = parent.style.height || 'auto';
+                parent.offsetHeight; // Force reflow
+            }
+            
+            // Force map dimension recalculation
+            this.setMapDimensions(mapElement);
+            
+            // Invalidate Leaflet maps
+            if (window.L && mapElement._leaflet_map) {
+                setTimeout(() => {
+                    mapElement._leaflet_map.invalidateSize({
+                        animate: false,
+                        pan: false
+                    });
+                }, 100);
+            }
+        });
+    }
+
     // Debug function to log map status
     debugMaps() {
         const maps = this.findAllMaps();
@@ -299,10 +338,17 @@ if (document.readyState === 'loading') {
     window.MobileMapsFix.init();
 }
 
-// Also initialize after a short delay to catch dynamically loaded maps
+    // Also initialize after a short delay to catch dynamically loaded maps
 setTimeout(() => {
     window.MobileMapsFix.fixExistingMaps();
+    // Force layout recalculation
+    window.MobileMapsFix.forceLayoutRecalc();
 }, 1000);
+
+// Force layout recalculation after 3 seconds (for slow loading)
+setTimeout(() => {
+    window.MobileMapsFix.forceMapRefresh();
+}, 3000);
 
 // Export useful functions globally for debugging
 window.refreshMaps = () => window.MobileMapsFix.forceMapRefresh();

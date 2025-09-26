@@ -1,23 +1,35 @@
 /* Responsive Maps CSS - Fix mobile map display issues */
 
 /* Ensure maps have proper dimensions on all screen sizes */
-#map, 
-.leaflet-container,
-[id*="map"] {
+/* Parent map containers (must have explicit height) */
+#map,
+[id*="map"],
+.map-container {
     width: 100% !important;
     min-height: 400px !important;
-    height: auto !important;
+    position: relative !important;
+}
+
+/* Leaflet canvas should fill its parent */
+.leaflet-container {
+    width: 100% !important;
+    height: 100% !important;
     position: relative !important;
 }
 
 /* Mobile-specific map styling */
 @media (max-width: 768px) {
-    #map, 
-    .leaflet-container,
-    [id*="map"] {
+    /* Parent container gets viewport-based height */
+    #map,
+    [id*="map"],
+    .map-container {
         min-height: 350px !important;
         height: 60vh !important;
-        max-height: 500px !important;
+        max-height: 520px !important;
+    }
+    /* Leaflet must still stretch to parent */
+    .leaflet-container {
+        height: 100% !important;
     }
     
     /* Ensure map controls are accessible on mobile */
@@ -53,21 +65,27 @@
 
 /* Tablet adjustments */
 @media (min-width: 769px) and (max-width: 1024px) {
-    #map, 
-    .leaflet-container,
-    [id*="map"] {
+    #map,
+    [id*="map"],
+    .map-container {
         min-height: 450px !important;
         height: 50vh !important;
+    }
+    .leaflet-container {
+        height: 100% !important;
     }
 }
 
 /* Desktop - ensure proper sizing */
 @media (min-width: 1025px) {
-    #map, 
-    .leaflet-container,
-    [id*="map"] {
+    #map,
+    [id*="map"],
+    .map-container {
         height: 500px !important;
         min-height: 500px !important;
+    }
+    .leaflet-container {
+        height: 100% !important;
     }
 }
 
@@ -78,7 +96,8 @@
     border-radius: 0.375rem !important;
 }
 
-/* Loading state for maps */
+/* Optional loading state (disabled to avoid covering map on some devices) */
+/*
 .leaflet-container::before {
     content: "Loading map...";
     position: absolute;
@@ -94,6 +113,7 @@
 .leaflet-container.leaflet-fade-anim .leaflet-tile-container::before {
     display: none;
 }
+*/
 
 /* Ensure attribution doesn't interfere */
 .leaflet-control-attribution {
@@ -190,12 +210,13 @@
 
 /* Fix for landscape mobile orientation */
 @media screen and (orientation: landscape) and (max-height: 500px) {
-    #map, 
-    .leaflet-container,
-    [id*="map"] {
+    #map,
+    [id*="map"],
+    .map-container {
         height: 80vh !important;
         min-height: 300px !important;
     }
+    .leaflet-container { height: 100% !important; }
 }
 
 /* Ensure proper z-index for map elements */
