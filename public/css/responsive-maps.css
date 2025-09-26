@@ -1,0 +1,212 @@
+/* Responsive Maps CSS - Fix mobile map display issues */
+
+/* Ensure maps have proper dimensions on all screen sizes */
+#map, 
+.leaflet-container,
+[id*="map"] {
+    width: 100% !important;
+    min-height: 400px !important;
+    height: auto !important;
+    position: relative !important;
+}
+
+/* Mobile-specific map styling */
+@media (max-width: 768px) {
+    #map, 
+    .leaflet-container,
+    [id*="map"] {
+        min-height: 350px !important;
+        height: 60vh !important;
+        max-height: 500px !important;
+    }
+    
+    /* Ensure map controls are accessible on mobile */
+    .leaflet-control-zoom {
+        margin-right: 10px !important;
+        margin-top: 10px !important;
+    }
+    
+    /* Make popups more mobile-friendly */
+    .leaflet-popup {
+        margin-bottom: 20px !important;
+    }
+    
+    .leaflet-popup-content {
+        margin: 8px 12px !important;
+        line-height: 1.3 !important;
+        font-size: 14px !important;
+        max-width: 280px !important;
+    }
+    
+    /* Adjust marker sizes for mobile */
+    .custom-bus-icon,
+    .custom-div-icon,
+    .route-marker {
+        transform: scale(1.1) !important;
+    }
+    
+    /* Make card containing map more mobile-friendly */
+    .card-body {
+        padding: 0 !important;
+    }
+}
+
+/* Tablet adjustments */
+@media (min-width: 769px) and (max-width: 1024px) {
+    #map, 
+    .leaflet-container,
+    [id*="map"] {
+        min-height: 450px !important;
+        height: 50vh !important;
+    }
+}
+
+/* Desktop - ensure proper sizing */
+@media (min-width: 1025px) {
+    #map, 
+    .leaflet-container,
+    [id*="map"] {
+        height: 500px !important;
+        min-height: 500px !important;
+    }
+}
+
+/* Force map to load properly */
+.leaflet-container {
+    background: #f8f9fa !important;
+    border: 1px solid #dee2e6 !important;
+    border-radius: 0.375rem !important;
+}
+
+/* Loading state for maps */
+.leaflet-container::before {
+    content: "Loading map...";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 1000;
+    color: #6c757d;
+    font-size: 14px;
+    pointer-events: none;
+}
+
+.leaflet-container.leaflet-fade-anim .leaflet-tile-container::before {
+    display: none;
+}
+
+/* Ensure attribution doesn't interfere */
+.leaflet-control-attribution {
+    font-size: 10px !important;
+    background: rgba(255, 255, 255, 0.8) !important;
+    max-width: 80% !important;
+}
+
+/* Fix for mobile Safari viewport issues */
+@supports (-webkit-touch-callout: none) {
+    #map, 
+    .leaflet-container,
+    [id*="map"] {
+        -webkit-overflow-scrolling: touch !important;
+        transform: translateZ(0) !important;
+    }
+}
+
+/* Force proper rendering on mobile devices */
+.map-container {
+    position: relative !important;
+    overflow: hidden !important;
+    border-radius: 0.375rem !important;
+}
+
+/* Responsive adjustments for map cards */
+@media (max-width: 768px) {
+    .card {
+        margin-bottom: 1rem !important;
+    }
+    
+    .card-header {
+        padding: 0.75rem !important;
+        font-size: 0.9rem !important;
+    }
+    
+    .btn-sm {
+        font-size: 0.75rem !important;
+        padding: 0.25rem 0.5rem !important;
+    }
+}
+
+/* Touch-friendly controls */
+@media (max-width: 768px) {
+    .leaflet-control-zoom a {
+        width: 30px !important;
+        height: 30px !important;
+        line-height: 30px !important;
+        font-size: 16px !important;
+    }
+    
+    .leaflet-touch .leaflet-control-zoom-in, 
+    .leaflet-touch .leaflet-control-zoom-out {
+        font-size: 18px !important;
+        width: 34px !important;
+        height: 34px !important;
+        line-height: 34px !important;
+    }
+}
+
+/* Ensure tiles load properly on slow connections */
+.leaflet-tile {
+    transition: opacity 0.3s !important;
+}
+
+.leaflet-tile-loaded {
+    opacity: 1 !important;
+}
+
+/* Map spinner for loading */
+.map-loading {
+    position: relative;
+}
+
+.map-loading::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 40px;
+    height: 40px;
+    margin: -20px 0 0 -20px;
+    border: 3px solid #f3f3f3;
+    border-top: 3px solid #007bff;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    z-index: 1001;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Fix for landscape mobile orientation */
+@media screen and (orientation: landscape) and (max-height: 500px) {
+    #map, 
+    .leaflet-container,
+    [id*="map"] {
+        height: 80vh !important;
+        min-height: 300px !important;
+    }
+}
+
+/* Ensure proper z-index for map elements */
+.leaflet-pane {
+    z-index: auto !important;
+}
+
+.leaflet-map-pane {
+    z-index: 1 !important;
+}
+
+.leaflet-control-container {
+    z-index: 1000 !important;
+}
