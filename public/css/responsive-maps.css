@@ -172,61 +172,6 @@
         height: 34px !important;
         line-height: 34px !important;
     }
-    
-    /* Fix custom bus icon positioning */
-    .custom-bus-icon {
-        position: relative !important;
-        z-index: 600 !important;
-    }
-    
-    .custom-bus-icon i {
-        position: relative !important;
-        display: block !important;
-        text-align: center !important;
-        line-height: 1 !important;
-    }
-    
-    /* Fix route markers positioning */
-    .route-marker {
-        position: relative !important;
-        z-index: 500 !important;
-    }
-    
-    .route-marker i {
-        position: relative !important;
-        display: block !important;
-        text-align: center !important;
-        line-height: 1 !important;
-    }
-    
-    /* Fix marker popup positioning */
-    .leaflet-popup-tip,
-    .leaflet-popup-content-wrapper {
-        margin: 0 !important;
-    }
-    
-    .leaflet-popup-content {
-        margin: 6px 10px !important;
-        line-height: 1.2 !important;
-        font-size: 13px !important;
-        max-width: 250px !important;
-    }
-    
-    /* Ensure map controls don't overlap content */
-    .leaflet-control-zoom {
-        margin-right: 8px !important;
-        margin-top: 8px !important;
-        z-index: 1000 !important;
-    }
-    
-    .leaflet-control-attribution {
-        font-size: 9px !important;
-        padding: 2px 4px !important;
-        background: rgba(255, 255, 255, 0.9) !important;
-        max-width: 75% !important;
-        overflow: hidden !important;
-        text-overflow: ellipsis !important;
-    }
 }
 
 /* Ensure tiles load properly on slow connections */
