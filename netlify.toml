@@ -4,6 +4,12 @@
   publish = "public"
   command = ""
 
+# Serve landing page as index
+[[redirects]]
+  from = "/"
+  to = "/landing.html"
+  status = 200
+
 # Redirect API calls to your backend service.
 # Updated with your actual Render backend URL
 [[redirects]]
