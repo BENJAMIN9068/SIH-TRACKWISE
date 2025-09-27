@@ -25,6 +25,7 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <link href="/css/modern-style.css" rel="stylesheet">
     <link href="/css/style.css" rel="stylesheet">
+    <link href="/css/video-demo.css" rel="stylesheet">
 </head>
 <body>
     <!-- Loading Screen -->
@@ -105,7 +106,44 @@
                     </div>
                 </div>
             </div>
+        </div>
+    </div>
+    
+    <!-- Awesome Animated Video Demo Section -->
+    <section class="video-demo-section">
+        <div class="demo-container">
+            <div class="demo-header">
+                <h2 class="demo-title">Experience TrackWise</h2>
+                <p class="demo-subtitle">Watch our platform in action with this interactive demo</p>
+            </div>
             
+            <div class="demo-video-container">
+                <div class="mock-browser">
+                    <div class="browser-controls">
+                        <div class="browser-dot red"></div>
+                        <div class="browser-dot yellow"></div>
+                        <div class="browser-dot green"></div>
+                        <div class="browser-url">https://trackwise.com/login</div>
+                    </div>
+                </div>
+                
+                <div class="demo-screen">
+                    <!-- Demo scenes will be populated by JavaScript -->
+                </div>
+                
+                <div class="scene-navigation">
+                    <div class="nav-dot active" data-scene="0"></div>
+                    <div class="nav-dot" data-scene="1"></div>
+                    <div class="nav-dot" data-scene="2"></div>
+                    <div class="nav-dot" data-scene="3"></div>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Continue with the rest of the page -->
+    <div class="position-relative" style="padding: 20px 0;">
+        <div class="container" style="max-width: 100%; overflow-x: hidden;">
             <!-- Features Showcase -->
             <div class="row mt-5 pt-5">
                 <div class="col-12 text-center mb-4">
@@ -159,6 +197,7 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.2/socket.io.js"></script>
     <script src="/js/modern-app.js"></script>
+    <script src="/js/video-demo.js"></script>
     
     <!-- Initialize App -->
     <script>
