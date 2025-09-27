@@ -12,12 +12,12 @@ const maintenanceMode = (req, res, next) => {
     }
 
     // Allow access to the maintenance page itself
-    if (req.path === '/maintenance-fake-error.html') {
+    if (req.path === '/trackwise.html') {
         return next();
     }
 
     // Redirect ALL other requests to fake error page (no bypass)
-    res.redirect('/maintenance-fake-error.html');
+    res.redirect('/trackwise.html');
 };
 
 module.exports = maintenanceMode;
