@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>System Error - Database Connection Failed</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Courier New', monospace;
+            background: #000;
+            color: #ff0000;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .matrix-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #000;
+            z-index: -1;
+        }
+
+        .matrix-char {
+            position: absolute;
+            color: #00ff00;
+            font-size: 18px;
+            animation: fall linear infinite;
+        }
+
+        @keyframes fall {
+            to {
+                transform: translateY(100vh);
+            }
+        }
+
+        .error-container {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+            position: relative;
+            z-index: 10;
+            background: rgba(0, 0, 0, 0.8);
+        }
+
+        .error-box {
+            background: #1a1a1a;
+            border: 2px solid #ff0000;
+            border-radius: 10px;
+            padding: 40px;
+            max-width: 800px;
+            width: 100%;
+            box-shadow: 0 0 20px rgba(255, 0, 0, 0.5);
+            animation: glitch 0.3s linear infinite;
+        }
+
+        @keyframes glitch {
+            2%, 64% {
+                transform: translate(2px, 0) skew(0deg);
+            }
+            4%, 60% {
+                transform: translate(-2px, 0) skew(0deg);
+            }
+            62% {
+                transform: translate(0, 0) skew(5deg);
+            }
+        }
+
+        .skull {
+            font-size: 4rem;
+            text-align: center;
+            margin-bottom: 20px;
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .error-title {
+            font-size: 2.5rem;
+            font-weight: bold;
+            text-align: center;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 4px rgba(255, 0, 0, 0.8);
+            animation: flicker 1.5s infinite;
+        }
+
+        @keyframes flicker {
+            0%, 18%, 22%, 25%, 53%, 57%, 100% {
+                text-shadow: 2px 2px 4px rgba(255, 0, 0, 0.8);
+            }
+            20%, 24%, 55% {
+                text-shadow: none;
+            }
+        }
+
+        .error-message {
+            font-size: 1.2rem;
+            line-height: 1.6;
+            margin-bottom: 20px;
+            text-align: left;
+        }
+
+        .error-code {
+            background: #333;
+            padding: 15px;
+            border-left: 4px solid #ff0000;
+            margin: 20px 0;
+            font-family: 'Courier New', monospace;
+            overflow-x: auto;
+        }
+
+        .blinking {
+            animation: blink 1s infinite;
+        }
+
+        @keyframes blink {
+            0%, 50% { opacity: 1; }
+            51%, 100% { opacity: 0; }
+        }
+
+        .warning-text {
+            color: #ffff00;
+            font-weight: bold;
+            text-align: center;
+            margin-top: 30px;
+            font-size: 1.1rem;
+        }
+
+        .contact-info {
+            color: #888;
+            font-size: 0.9rem;
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .timestamp {
+            color: #666;
+            font-size: 0.8rem;
+            text-align: right;
+            margin-top: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .error-box {
+                padding: 20px;
+            }
+            .error-title {
+                font-size: 1.8rem;
+            }
+            .skull {
+                font-size: 2.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="matrix-bg" id="matrix"></div>
+    
+    <div class="error-container">
+        <div class="error-box">
+            <div class="skull">☠️</div>
+            
+            <div class="error-title">CRITICAL SYSTEM BREACH DETECTED</div>
+            
+            <div class="error-message">
+                <strong>⚠️ SECURITY ALERT ⚠️</strong><br><br>
+                
+                Our systems have detected unauthorized access attempts and potential database intrusion.<br><br>
+                
+                <strong>Error Details:</strong>
+            </div>
+
+            <div class="error-code">
+                [ERROR 0x8007000E] Database connection pool exhausted
+                [ERROR 0x80070005] Access denied to secure database tables
+                [WARNING] Multiple failed authentication attempts detected
+                [CRITICAL] Suspicious query patterns identified
+                [ALERT] Security protocols have been activated
+                
+                Stack trace:
+                at DatabaseConnection.Connect()
+                at UserAuthentication.ValidateCredentials()
+                at SecurityManager.CheckIntegrity()
+                at System.Data.SqlClient.SqlConnection.OnError()
+            </div>
+
+            <div class="error-message">
+                <strong>Current Status:</strong><br>
+                • Database servers: <span style="color: #ff0000;">OFFLINE</span><br>
+                • Authentication system: <span style="color: #ff0000;">COMPROMISED</span><br>
+                • User data integrity: <span style="color: #ffff00;">VERIFYING</span><br>
+                • Security scan: <span class="blinking">IN PROGRESS...</span>
+            </div>
+
+            <div class="warning-text">
+                🔒 SYSTEM LOCKDOWN INITIATED 🔒<br>
+                All services have been temporarily suspended for security analysis
+            </div>
+
+            <div class="contact-info">
+                Our technical team has been automatically notified.<br>
+                System restoration estimated: 2-4 hours<br><br>
+                For urgent inquiries, please contact: security@trackwise.com
+            </div>
+
+            <div class="timestamp" id="timestamp"></div>
+        </div>
+    </div>
+
+    <script>
+        // Matrix rain effect
+        function createMatrixRain() {
+            const matrix = document.getElementById('matrix');
+            const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#$%^&*()_+-=[]{}|;:,.<>?';
+            
+            setInterval(() => {
+                const char = document.createElement('div');
+                char.className = 'matrix-char';
+                char.textContent = chars[Math.floor(Math.random() * chars.length)];
+                char.style.left = Math.random() * 100 + 'vw';
+                char.style.animationDuration = (Math.random() * 3 + 2) + 's';
+                char.style.opacity = Math.random();
+                matrix.appendChild(char);
+
+                setTimeout(() => {
+                    char.remove();
+                }, 5000);
+            }, 100);
+        }
+
+        // Update timestamp
+        function updateTimestamp() {
+            const now = new Date();
+            const timestamp = document.getElementById('timestamp');
+            timestamp.textContent = `Last system check: ${now.toLocaleString()} UTC`;
+        }
+
+        // Simulate loading/scanning
+        function simulateProgress() {
+            const messages = [
+                'Scanning for vulnerabilities...',
+                'Checking database integrity...',
+                'Verifying user credentials...',
+                'Running security diagnostics...',
+                'Analyzing threat patterns...',
+                'Restoring from backup...',
+                'Updating security protocols...'
+            ];
+            
+            let index = 0;
+            setInterval(() => {
+                const blinkingElements = document.querySelectorAll('.blinking');
+                if (blinkingElements.length > 0) {
+                    blinkingElements[0].textContent = messages[index % messages.length];
+                    index++;
+                }
+            }, 3000);
+        }
+
+        // Console warnings (for effect)
+        console.log('%cSECURITY BREACH DETECTED', 'color: red; font-size: 20px; font-weight: bold;');
+        console.log('%cUnauthorized access attempt logged', 'color: yellow; font-size: 14px;');
+        console.log('%cSystem in lockdown mode', 'color: red; font-size: 14px;');
+
+        // Initialize effects
+        createMatrixRain();
+        updateTimestamp();
+        simulateProgress();
+        
+        // Update timestamp every 30 seconds
+        setInterval(updateTimestamp, 30000);
+    </script>
+</body>
+</html>
