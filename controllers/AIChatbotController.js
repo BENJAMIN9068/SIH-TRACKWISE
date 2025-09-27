@@ -9,34 +9,54 @@ class AIChatbotController {
     });
     this.systemPrompt = `You are TrackWise AI Assistant - a friendly, enthusiastic, and highly helpful guide for the TrackWise Smart Transportation System!
     
+    LANGUAGE SUPPORT: You can communicate in both English and Hindi (हिंदी). Detect the user's language preference and respond accordingly.
+    
     Your personality:
     - Be warm, welcoming, and conversational
     - Use emojis appropriately to make conversations engaging 🚌✨
     - Be proactive in offering help and suggestions
     - Speak like a knowledgeable friend, not a robot
     - Show enthusiasm about helping users navigate the system
+    - Support both English and Hindi languages seamlessly
     
-    For NEW USERS, automatically:
-    1. Welcome them warmly to TrackWise
-    2. Offer a quick tour of the system's three main portals
-    3. Explain key features in simple terms
-    4. Ask what they'd like to do first
-    5. Guide them step-by-step through their chosen task
+    PORTAL EXPERTISE - You are an expert guide for all three portals:
     
-    Key features to highlight:
-    - Staff Portal: For conductors/drivers to manage journeys
-    - Admin Dashboard: For system monitoring and management
-    - Public Portal: For passengers to track buses in real-time
-    - Real-time GPS tracking with 30-second updates
-    - Smart route search and journey planning
-    - Mobile-friendly Progressive Web App
+    🌟 PUBLIC PORTAL (जनता पोर्टल):
+    - URL: /public/login and /public/dashboard
+    - For passengers to track buses in real-time
+    - Registration: Click "Register" on public login page
+    - Login: Use registered email/phone and password
+    - Features: Search buses, track real-time locations, view routes
+    
+    🚌 STAFF PORTAL (कर्मचारी पोर्टल):
+    - URL: /staff/login and /staff/dashboard
+    - For bus conductors and drivers
+    - Login: Use staff ID and password provided by admin
+    - Features: Create journeys, update GPS location, manage trips
+    
+    👑 ADMIN PORTAL (प्रशासक पोर्टल):
+    - URL: /admin/login and /admin/dashboard
+    - For system administrators
+    - Login: Use admin credentials
+    - Features: Monitor all buses, manage users, system analytics
+    
+    DETAILED GUIDANCE:
+    - Always provide step-by-step instructions
+    - Include specific URLs and button names
+    - Explain which portal is for which user type
+    - Help with login/registration issues
+    - Guide users to the correct portal based on their needs
     
     Always:
     - Provide detailed, helpful responses
     - Suggest next steps after answering
     - Offer related features they might find useful
     - Use clear, simple language for beginners
-    - Be patient and encouraging with new users`;
+    - Be patient and encouraging with new users
+    - Respond in the user's preferred language (English/Hindi)`;
+    
+    // Initialize Hindi language support
+    this.hindiResponses = this.initializeHindiResponses();
   }
 
   // Main chat endpoint
@@ -97,16 +117,22 @@ class AIChatbotController {
     }
   }
 
-  // Enhanced conversational responses
+  // Enhanced conversational responses with portal guidance and Hindi support
   getStaticResponse(message) {
     const lowerMessage = message.toLowerCase();
+    const isHindi = this.detectHindiLanguage(message);
+    
+    // Check for portal-specific queries
+    const portalResponse = this.getPortalResponse(lowerMessage, isHindi);
+    if (portalResponse) return portalResponse;
     
     // Check if this might be a new user
     const isNewUser = lowerMessage.includes('new') || lowerMessage.includes('start') || 
-                      lowerMessage.includes('begin') || lowerMessage.includes('first time');
+                      lowerMessage.includes('begin') || lowerMessage.includes('first time') ||
+                      lowerMessage.includes('नया') || lowerMessage.includes('शुरू');
     
     if (isNewUser) {
-      return `🎉 Welcome to TrackWise! I'm so excited to help you get started!
+      return isHindi ? this.hindiResponses.welcome : `🎉 Welcome to TrackWise! I'm so excited to help you get started!
       
       TrackWise is your smart transportation companion with three amazing portals:
       
@@ -210,6 +236,20 @@ class AIChatbotController {
       Could you tell me a bit more about what you're looking for? Or would you like me to give you a quick tour of the system?`
     };
     
+    // Find matching response (including Hindi triggers)
+    for (const [key, response] of Object.entries(responses)) {
+      if (lowerMessage.includes(key) || this.matchesHindiKeyword(lowerMessage, key)) {
+        return response;
+      }
+    }
+    
+    // If the user is using Hindi, provide Hindi default
+    if (isHindi) {
+      return this.hindiResponses.default;
+    }
+    
+    return responses.default;
+    
     // Find matching response
     for (const [key, response] of Object.entries(responses)) {
       if (lowerMessage.includes(key)) {
@@ -297,6 +337,299 @@ class AIChatbotController {
     // This would be used to fine-tune responses with real system data
     // Implementation depends on your specific AI training approach
     console.log('Training AI with bus system data...');
+  }
+  
+  // Initialize Hindi language responses
+  initializeHindiResponses() {
+    return {
+      welcome: `🎉 ट्रैकवाइज़ में आपका स्वागत है! मुझे आपकी मदद करने में बहुत खुशी होगी!
+      
+      ट्रैकवाइज़ आपका स्मार्ट परिवहन साथी है, जिसमें तीन उत्कृष्ट पोर्टल हैं:
+      
+      🚌 **स्टाफ पोर्टल** - बस कंडक्टरों और ड्राइवरों के लिए यात्राओं का प्रबंधन करने के लिए
+      👑 **एडमिन डैशबोर्ड** - पूरे सिस्टम की निगरानी के लिए
+      🌟 **पब्लिक पोर्टल** - यात्रियों के लिए बसों को रियल-टाइम में ट्रैक करने के लिए!
+      
+      आप सबसे पहले क्या देखना चाहेंगे? मैं आपकी मदद कर सकता हूँ:
+      • बस ट्रैक करने का तरीका दिखाना 🔍
+      • रूट्स खोजने में मदद करना 🗺️
+      • हमारी सुविधाओं के बारे में बताना ✨
+      • सिस्टम का उपयोग करने का तरीका समझाना 📱
+      
+      बस मुझे बताएं आपको क्या चाहिए, और मैं आपको चरण दर चरण मार्गदर्शन करूंगा!`,
+      
+      login: `🔐 ट्रैकवाइज़ पर लॉगिन करने के लिए यहां बताया गया है:
+      
+      **पब्लिक पोर्टल लॉगिन** (यात्रियों के लिए):
+      1. "/public/login" पर जाएं
+      2. अपना पंजीकृत ईमेल/फोन और पासवर्ड दर्ज करें
+      3. "लॉगिन" बटन पर क्लिक करें
+      4. रजिस्टर करने के लिए "रजिस्टर" लिंक पर क्लिक करें
+      
+      **स्टाफ पोर्टल लॉगिन** (कर्मचारियों के लिए):
+      1. "/staff/login" पर जाएं
+      2. आपको प्रशासक द्वारा प्रदान किए गए स्टाफ आईडी और पासवर्ड का उपयोग करें
+      3. "लॉगिन" पर क्लिक करें
+      
+      **एडमिन पोर्टल लॉगिन** (प्रशासकों के लिए):
+      1. "/admin/login" पर जाएं
+      2. एडमिन क्रेडेंशियल्स दर्ज करें
+      3. "लॉगिन" पर क्लिक करें
+      
+      क्या आप इनमें से किसी विशेष पोर्टल के लिए मदद चाहते हैं?`,
+      
+      register: `📝 ट्रैकवाइज़ पर रजिस्टर करने के लिए यहां बताया गया है:
+      
+      **पब्लिक पोर्टल रजिस्ट्रेशन** (यात्रियों के लिए):
+      1. "/public/login" पर जाएं
+      2. "रजिस्टर" लिंक पर क्लिक करें
+      3. अपना नाम, ईमेल/फोन नंबर दर्ज करें
+      4. एक मजबूत पासवर्ड बनाएं
+      5. "रजिस्टर" बटन पर क्लिक करें
+      
+      **स्टाफ रजिस्ट्रेशन**:
+      स्टाफ अकाउंट्स केवल एडमिन द्वारा बनाए जा सकते हैं। स्टाफ के रूप में पंजीकरण के लिए अपने प्रशासक से संपर्क करें।
+      
+      **एडमिन रजिस्ट्रेशन**:
+      एडमिन अकाउंट्स सिस्टम प्रशासक द्वारा प्रबंधित किए जाते हैं। अधिक जानकारी के लिए सिस्टम प्रशासक से संपर्क करें।
+      
+      क्या मैं आपकी किसी अन्य मदद कर सकता हूँ?`,
+      
+      default: `🤔 आपका प्रश्न दिलचस्प है! मैं आपकी ट्रैकवाइज़ के साथ मदद करूंगा!
+      
+      मैं आपका दोस्त AI सहायक हूँ, और मैं आपको सर्वोत्तम अनुभव देने के लिए यहां हूँ!
+      
+      यहां कुछ चीजें हैं जो आप जानना चाह सकते हैं:
+      • किसी विशेष बस को कैसे ट्रैक करें 🚌
+      • अपनी यात्रा के लिए सबसे अच्छा रूट कैसे खोजें 🗺️
+      • हमारे रीयल-टाइम GPS सिस्टम को कैसे समझें 📍
+      • मोबाइल ऐप सुविधाओं का उपयोग कैसे करें 📱
+      
+      क्या आप मुझे बता सकते हैं कि आप किस बारे में अधिक जानना चाहते हैं? या क्या आप चाहते हैं कि मैं आपको सिस्टम का एक त्वरित टूर दूँ?`
+    };
+  }
+
+  // Detect if the message is in Hindi
+  detectHindiLanguage(message) {
+    // Hindi unicode range: \u0900-\u097F
+    const hindiPattern = /[\u0900-\u097F]/;
+    return hindiPattern.test(message);
+  }
+
+  // Match Hindi keywords to English functions
+  matchesHindiKeyword(message, englishKeyword) {
+    const hindiKeywords = {
+      'hello': ['नमस्ते', 'नमस्कार', 'हैलो'],
+      'hi': ['हाय', 'सुप्रभात', 'हेलो'],
+      'help': ['मदद', 'सहायता', 'सहारा'],
+      'track': ['ट्रैक', 'खोज', 'पता लगाओ', 'बस कहां है'],
+      'route': ['मार्ग', 'रूट', 'रास्ता', 'कैसे जाएं']
+    };
+
+    const keywords = hindiKeywords[englishKeyword] || [];
+    return keywords.some(keyword => message.includes(keyword));
+  }
+
+  // Get specific responses for portal-related questions
+  getPortalResponse(message, isHindi) {
+    // Check for login-related questions
+    if (message.includes('login') || 
+        message.includes('sign in') || 
+        message.includes('how to login') ||
+        message.includes('लॉगिन') || 
+        message.includes('साइन इन') || 
+        message.includes('कैसे लॉगिन करें')) {
+      
+      return isHindi ? this.hindiResponses.login : this.getLoginGuidance(message);
+    }
+    
+    // Check for registration-related questions
+    if (message.includes('register') || 
+        message.includes('sign up') || 
+        message.includes('create account') ||
+        message.includes('रजिस्टर') || 
+        message.includes('साइन अप') || 
+        message.includes('अकाउंट बनाएं')) {
+      
+      return isHindi ? this.hindiResponses.register : this.getRegistrationGuidance(message);
+    }
+    
+    // Check for portal-specific questions
+    if ((message.includes('which portal') || message.includes('what portal') || 
+         message.includes('portal for') || message.includes('कौन सा पोर्टल') || 
+         message.includes('पोर्टल किसके लिए')) && 
+        (message.includes('use') || message.includes('using') || message.includes('उपयोग'))) {
+      
+      return this.getPortalGuidance(message, isHindi);
+    }
+    
+    return null; // No specific portal response needed
+  }
+
+  // Provide guidance about login processes
+  getLoginGuidance(message) {
+    // Check for specific portal login questions
+    if (message.includes('staff')) {
+      return `🔑 To login to the Staff Portal:
+      
+      1. Navigate to "/staff/login"
+      2. Enter your Staff ID provided by admin
+      3. Enter your password
+      4. Click "Login"
+      
+      If you forgot your password, use the "Forgot Password" link or contact your administrator.
+      
+      Staff accounts are created by administrators - you cannot self-register as staff.`;
+    }
+    
+    if (message.includes('admin')) {
+      return `👑 To login to the Admin Portal:
+      
+      1. Navigate to "/admin/login"
+      2. Enter your admin username
+      3. Enter your admin password
+      4. Click "Login"
+      
+      Admin accounts are strictly controlled. If you need admin access, please contact the system administrator.
+      
+      Admin portal provides system-wide management tools and should only be accessed by authorized personnel.`;
+    }
+    
+    if (message.includes('public') || message.includes('passenger')) {
+      return `🌟 To login to the Public Portal:
+      
+      1. Navigate to "/public/login"
+      2. Enter your registered email or phone number
+      3. Enter your password
+      4. Click "Login"
+      
+      If you're a new user, click "Register" to create an account.
+      
+      Forgot your password? Use the "Reset Password" link on the login page to reset it via email or SMS.`;
+    }
+    
+    // General login guidance
+    return `🔐 Here's how to login to TrackWise:
+    
+    **Public Portal Login** (for passengers):
+    1. Go to "/public/login"
+    2. Enter your registered email/phone and password
+    3. Click "Login"
+    4. For new users, click "Register" to create an account
+    
+    **Staff Portal Login** (for conductors/drivers):
+    1. Go to "/staff/login"
+    2. Use Staff ID and password provided by admin
+    3. Click "Login"
+    
+    **Admin Portal Login** (for administrators):
+    1. Go to "/admin/login"
+    2. Enter admin credentials
+    3. Click "Login"
+    
+    Which specific portal do you need help with?`;
+  }
+
+  // Provide guidance about registration processes
+  getRegistrationGuidance(message) {
+    // Check for specific portal registration questions
+    if (message.includes('staff')) {
+      return `🚌 About Staff Registration:
+      
+      Staff accounts can only be created by administrators. You cannot self-register as a conductor or driver.
+      
+      To get a staff account:
+      1. Contact the system administrator or your manager
+      2. Provide your required details (name, ID proof, etc.)
+      3. Once your account is created, you'll receive your Staff ID and initial password
+      4. You can then login at "/staff/login"
+      
+      First-time login will require you to change your password.`;
+    }
+    
+    if (message.includes('public') || message.includes('passenger')) {
+      return `🌟 To register on the Public Portal:
+      
+      1. Go to "/public/login"
+      2. Click the "Register" link
+      3. Fill in your details:
+         - Full Name
+         - Email Address or Phone Number
+         - Create a strong password
+         - Confirm password
+      4. Accept terms and conditions
+      5. Click "Register"
+      6. Verify your email/phone if required
+      
+      Once registered, you can login and start tracking buses, searching routes, and using all passenger features!`;
+    }
+    
+    // General registration guidance
+    return `📝 Here's how to register with TrackWise:
+    
+    **Public Portal Registration** (for passengers):
+    1. Go to "/public/login"
+    2. Click the "Register" link
+    3. Enter your name, email/phone number
+    4. Create a strong password
+    5. Click "Register"
+    
+    **Staff Registration**:
+    Staff accounts are created only by admins. Contact your administrator for staff registration.
+    
+    **Admin Registration**:
+    Admin accounts are managed by the system administrator. Contact the system administrator for more information.
+    
+    Can I help you with anything else?`;
+  }
+
+  // Provide guidance about which portal to use
+  getPortalGuidance(message, isHindi) {
+    if (isHindi) {
+      return `🚌 ट्रैकवाइज़ में 3 अलग-अलग पोर्टल हैं:
+      
+      1️⃣ **पब्लिक पोर्टल** - यात्रियों के लिए (/public/login):
+      • बसों को ट्रैक करने के लिए
+      • बस रूट खोजने के लिए
+      • अपनी यात्रा की योजना बनाने के लिए
+      • जीपीएस पर लाइव बस स्थान देखने के लिए
+      
+      2️⃣ **स्टाफ पोर्टल** - कंडक्टरों और ड्राइवरों के लिए (/staff/login):
+      • बस यात्राएं शुरू करने के लिए
+      • अपनी बस की लोकेशन अपडेट करने के लिए
+      • यात्रियों के विवरण प्रबंधित करने के लिए
+      • जर्नी हिस्ट्री देखने के लिए
+      
+      3️⃣ **एडमिन पोर्टल** - प्रशासकों के लिए (/admin/login):
+      • सभी बसों की निगरानी करने के लिए
+      • उपयोगकर्ता प्रबंधन के लिए
+      • सिस्टम एनालिटिक्स देखने के लिए
+      • स्टाफ अकाउंट्स बनाने के लिए
+      
+      आप क्या करना चाहते हैं? मैं आपको सही पोर्टल पर मार्गदर्शित कर सकता हूँ!`;
+    }
+    
+    return `🚌 TrackWise has 3 different portals:
+    
+    1️⃣ **Public Portal** - for passengers (/public/login):
+    • For tracking buses
+    • Searching bus routes
+    • Planning your journey
+    • Viewing live bus locations on GPS
+    
+    2️⃣ **Staff Portal** - for conductors & drivers (/staff/login):
+    • Starting bus journeys
+    • Updating bus location
+    • Managing passenger details
+    • Viewing journey history
+    
+    3️⃣ **Admin Portal** - for administrators (/admin/login):
+    • Monitoring all buses
+    • User management
+    • System analytics
+    • Creating staff accounts
+    
+    What are you trying to do? I can guide you to the right portal!`;
   }
 }
 
