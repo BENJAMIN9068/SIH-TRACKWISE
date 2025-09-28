@@ -1,16 +1,22 @@
 // Clear fake content cache immediately on page load
 (function() {
-    console.log('🧹 Clearing fake content cache...');
+    console.log('🧹 Clearing old cache and loading enhanced TrackWise...');
     
-    // Clear service worker cache for fake content
+    // Clear service worker cache for old versions
     if ('serviceWorker' in navigator && 'caches' in window) {
         caches.keys().then(cacheNames => {
             cacheNames.forEach(cacheName => {
-                if (cacheName.includes('bus-tracking-v1') || cacheName.includes('fake') || cacheName.includes('breach')) {
+                if (cacheName.includes('bus-tracking-v1') || cacheName.includes('bus-tracking-v2') || 
+                    cacheName.includes('fake') || cacheName.includes('breach')) {
                     console.log('🗑️ Deleting old cache:', cacheName);
                     caches.delete(cacheName);
                 }
             });
+        });
+        
+        // Also try to trigger service worker update
+        navigator.serviceWorker.ready.then(registration => {
+            registration.update();
         });
     }
     
