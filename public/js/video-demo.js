@@ -100,18 +100,36 @@ class TrackWiseDemo {
             <div class="demo-scene" id="ai-chat-scene">
                 <div class="ai-chat-demo">
                     <div class="chat-header">
-                        <h3>🤖 AI Travel Assistant</h3>
+                        <h3>🤖 TrackWise AI Assistant</h3>
+                        <div class="chat-status">• Online</div>
                     </div>
                     <div class="chat-window">
+                        <div class="chat-message bot initial">
+                            👋 Hi! I'm your TrackWise AI assistant. I can help with routes, real-time tracking, and bookings. What can I help you with?
+                        </div>
                         <div class="chat-message user">"Find me the fastest route to the airport"</div>
                         <div class="chat-message bot">
-                            <div class="typing-indicator">●●●</div>
-                            🤖 I found 3 routes. Route A via Express Lane is fastest (28 min). Bus DL-1PC-1234 departing in 5 minutes.
+                            🔍 Searching available routes to airport...
+                            <br><br>🤖 Found 3 routes! Route A via Express Lane is fastest (28 min).
+                            <br>🚌 Bus DL-1PC-1234 departing in 5 minutes from Gate B
+                            <br>🎫 Seats available: 15 | Fare: $12.50
                         </div>
                         <div class="chat-message user">"Book this route for me"</div>
-                        <div class="chat-message bot">✅ Booked! Seat 15A reserved. Sending QR code to your phone.</div>
+                        <div class="chat-message bot">
+                            ✅ Perfect! Booking Bus DL-1PC-1234...
+                            <br><br>✨ Booking confirmed!
+                            <br>🎫 Seat 15A reserved
+                            <br>📱 QR ticket sent to your phone
+                            <br>🕰️ Departure: 5 minutes at Gate B
+                        </div>
                         <div class="chat-message user">"Track my bus please"</div>
-                        <div class="chat-message bot">🚌 Your bus is 2 stops away, arriving in 3 minutes at Gate B.</div>
+                        <div class="chat-message bot">
+                            🚌 Tracking Bus DL-1PC-1234...
+                            <br><br>📍 Current location: Junction Road & Main Street
+                            <br>🚦 2 stops away from your pickup point
+                            <br>⏰ ETA: 3 minutes at Gate B
+                            <br>🟢 Status: On time
+                        </div>
                     </div>
                 </div>
             </div>

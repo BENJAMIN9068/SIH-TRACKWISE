@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TrackWise AI Chatbot Test</title>
+    <link rel="stylesheet" href="/css/modern-style.css">
+    <style>
+        body {
+            margin: 0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+        }
+        .test-container {
+            text-align: center;
+            padding: 2rem;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .test-button {
+            background: linear-gradient(135deg, #48bb78, #38a169);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            margin: 1rem;
+            transition: transform 0.2s;
+        }
+        .test-button:hover {
+            transform: translateY(-2px);
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>🤖 TrackWise AI Chatbot Test</h1>
+        <p>Click the button below to test the AI chatbot functionality</p>
+        
+        <button class="test-button" onclick="testChatbot()">Launch AI Assistant</button>
+        <button class="test-button" onclick="testAPIDirectly()">Test API Directly</button>
+        
+        <div id="test-results" style="margin-top: 2rem; text-align: left; max-width: 600px;"></div>
+    </div>
+
+    <script src="/js/modern-app.js"></script>
+    
+    <script>
+        // Initialize the chatbot
+        let testApp, testChatbot;
+        
+        document.addEventListener('DOMContentLoaded', () => {
+            testApp = new ModernApp();
+            testChatbot = new AIBusChatbot();
+        });
+        
+        function testChatbot() {
+            if (testChatbot) {
+                testChatbot.toggle();
+            } else {
+                alert('Chatbot not initialized yet. Please wait a moment and try again.');
+            }
+        }
+        
+        async function testAPIDirectly() {
+            const resultsDiv = document.getElementById('test-results');
+            resultsDiv.innerHTML = '<h3>Testing AI API...</h3>';
+            
+            const testMessages = [
+                'Hello!',
+                'Find me the fastest route to the airport',
+                'Book this route for me',
+                'Track my bus please'
+            ];
+            
+            for (const message of testMessages) {
+                try {
+                    resultsDiv.innerHTML += `<p><strong>You:</strong> ${message}</p>`;
+                    
+                    const response = await fetch('/api/chat', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ message })
+                    });
+                    
+                    if (response.ok) {
+                        const data = await response.json();
+                        resultsDiv.innerHTML += `<p><strong>AI:</strong> ${data.response}</p><hr>`;
+                    } else {
+                        resultsDiv.innerHTML += `<p style="color: #ff6b6b;"><strong>Error:</strong> ${response.status} - ${response.statusText}</p><hr>`;
+                    }
+                } catch (error) {
+                    resultsDiv.innerHTML += `<p style="color: #ff6b6b;"><strong>Error:</strong> ${error.message}</p><hr>`;
+                }
+                
+                // Add a small delay between requests
+                await new Promise(resolve => setTimeout(resolve, 500));
+            }
+        }
+    </script>
+</body>
+</html>
