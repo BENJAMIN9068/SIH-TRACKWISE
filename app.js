@@ -124,6 +124,15 @@ app.get('/', (req, res) => {
   res.render('index');
 });
 
+// Prevent access to removed fake content - redirect to main page
+app.get('/trackwise.html', (req, res) => {
+  res.redirect('/');
+});
+
+app.get('/trackwise', (req, res) => {
+  res.redirect('/');
+});
+
 // Health check for cPanel monitoring
 app.get('/health', (req, res) => {
   res.json({

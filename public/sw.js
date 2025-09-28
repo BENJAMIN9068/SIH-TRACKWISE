@@ -1,6 +1,6 @@
 // ===== Bus Tracking System - Service Worker ===== //
 
-const CACHE_NAME = 'bus-tracking-v1';
+const CACHE_NAME = 'bus-tracking-v2-clean'; // Force refresh after removing fake content
 const urlsToCache = [
   '/',
   '/css/modern-style.css',
