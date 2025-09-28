@@ -46,9 +46,6 @@ try {
 // Trust proxy for cPanel/shared hosting
 app.set('trust proxy', 1);
 
-// Import and use maintenance mode middleware FIRST
-const maintenanceMode = require('./middleware/maintenanceMode');
-app.use(maintenanceMode);
 
 // Middleware
 app.use(cors({
