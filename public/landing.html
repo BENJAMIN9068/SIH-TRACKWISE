@@ -95,6 +95,7 @@
             100% { transform: rotate(360deg); }
         }
     </style>
+    <link rel="stylesheet" href="/css/video-demo.css">
 </head>
 <body>
     <div class="landing-container">
@@ -105,6 +106,50 @@
             <a href="#" class="btn btn-primary" onclick="redirectToApp()">Launch Application</a>
             <a href="#" class="btn btn-secondary" onclick="scrollToFeatures()">Learn More</a>
         </div>
+
+        <!-- Interactive Demo Section -->
+        <section class="video-demo-section" id="demo">
+            <div class="demo-container">
+                <div class="demo-header">
+                    <h2 class="demo-title">See TrackWise in Action</h2>
+                    <p class="demo-subtitle">Interactive walkthrough of login, dashboard, live tracking, and real-time updates</p>
+                </div>
+
+                <div class="demo-video-container" aria-label="TrackWise interactive demo">
+                    <div class="mock-browser">
+                        <div class="browser-controls">
+                            <span class="browser-dot red"></span>
+                            <span class="browser-dot yellow"></span>
+                            <span class="browser-dot green"></span>
+                            <span class="browser-url">https://trackwise.com/login</span>
+                        </div>
+                    </div>
+                    <div class="demo-screen"></div>
+                </div>
+
+                <div class="scene-navigation" aria-label="Scene navigation">
+                    <div class="nav-dot active" title="Login"></div>
+                    <div class="nav-dot" title="Dashboard"></div>
+                    <div class="nav-dot" title="Map Tracking"></div>
+                    <div class="nav-dot" title="AI Assistant"></div>
+                    <div class="nav-dot" title="Analytics"></div>
+                    <div class="nav-dot" title="Updates"></div>
+                    <div class="nav-dot" title="Feedback"></div>
+                </div>
+
+                <div class="btn-group" style="margin-top: 1.5rem;">
+                    <button class="btn btn-secondary" data-action="prev">◀ Previous</button>
+                    <button class="btn btn-primary" data-action="play">Play</button>
+                    <button class="btn btn-secondary" data-action="pause">Pause</button>
+                    <button class="btn btn-secondary" data-action="next">Next ▶</button>
+                    <button class="btn btn-secondary" data-action="fullscreen">Fullscreen</button>
+                    <label style="margin-left: 1rem; display: inline-flex; align-items: center; gap: 0.5rem;">
+                        <span>Speed</span>
+                        <input type="range" id="demo-speed" min="2000" max="8000" step="500" value="4000" />
+                    </label>
+                </div>
+            </div>
+        </section>
         
         <div class="loading" id="loading">
             <div class="spinner"></div>
@@ -178,8 +223,47 @@ const BACKEND_URL = 'https://trackwise-backend-2qs8.onrender.com'; // Render bac
             });
         }
         
+        // Wire demo control buttons when demo is ready
+        document.addEventListener('DOMContentLoaded', () => {
+            function bindDemoControls() {
+                const playBtn = document.querySelector('[data-action="play"]');
+                const pauseBtn = document.querySelector('[data-action="pause"]');
+                const prevBtn = document.querySelector('[data-action="prev"]');
+                const nextBtn = document.querySelector('[data-action="next"]');
+                const fsBtn = document.querySelector('[data-action="fullscreen"]');
+                const speed = document.getElementById('demo-speed');
+                const container = document.querySelector('.demo-video-container');
+                
+                if (window.trackwiseDemo) {
+                    playBtn && playBtn.addEventListener('click', () => window.trackwiseDemo.play());
+                    pauseBtn && pauseBtn.addEventListener('click', () => window.trackwiseDemo.pause());
+                    prevBtn && prevBtn.addEventListener('click', () => window.trackwiseDemo.previousScene());
+                    nextBtn && nextBtn.addEventListener('click', () => window.trackwiseDemo.nextScene());
+                    if (speed) {
+                        speed.addEventListener('input', (e) => {
+                            const v = Number(e.target.value);
+                            window.trackwiseDemo.setSpeed(v);
+                        });
+                    }
+                    if (fsBtn && container) {
+                        fsBtn.addEventListener('click', () => {
+                            if (container.requestFullscreen) {
+                                container.requestFullscreen();
+                            }
+                        });
+                    }
+                } else {
+                    // Try again shortly if demo not yet initialized
+                    setTimeout(bindDemoControls, 200);
+                }
+            }
+            bindDemoControls();
+        });
+        
         // Check status on page load
         document.addEventListener('DOMContentLoaded', checkBackendStatus);
     </script>
+
+    <script src="/js/video-demo.js" defer></script>
 </body>
 </html>

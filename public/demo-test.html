@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TrackWise Demo Test</title>
+    <link rel="stylesheet" href="/css/video-demo.css">
+    <style>
+        body {
+            margin: 0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+    </style>
+</head>
+<body>
+    <section class="video-demo-section" id="demo">
+        <div class="demo-container">
+            <div class="demo-header">
+                <h2 class="demo-title">Enhanced TrackWise Demo</h2>
+                <p class="demo-subtitle">7 Scenes showcasing login, dashboard, tracking, AI assistant, analytics, updates, and feedback</p>
+            </div>
+
+            <div class="demo-video-container" aria-label="TrackWise interactive demo">
+                <div class="mock-browser">
+                    <div class="browser-controls">
+                        <span class="browser-dot red"></span>
+                        <span class="browser-dot yellow"></span>
+                        <span class="browser-dot green"></span>
+                        <span class="browser-url">https://trackwise.com/login</span>
+                    </div>
+                </div>
+                <div class="demo-screen"></div>
+            </div>
+
+            <div class="scene-navigation" aria-label="Scene navigation">
+                <div class="nav-dot active" title="Login"></div>
+                <div class="nav-dot" title="Dashboard"></div>
+                <div class="nav-dot" title="Map Tracking"></div>
+                <div class="nav-dot" title="AI Assistant"></div>
+                <div class="nav-dot" title="Analytics"></div>
+                <div class="nav-dot" title="Updates"></div>
+                <div class="nav-dot" title="Feedback"></div>
+            </div>
+
+            <div style="margin-top: 1.5rem; text-align: center;">
+                <button style="padding: 10px 20px; margin: 0 5px; background: #667eea; color: white; border: none; border-radius: 8px; cursor: pointer;" data-action="prev">◀ Previous</button>
+                <button style="padding: 10px 20px; margin: 0 5px; background: #48bb78; color: white; border: none; border-radius: 8px; cursor: pointer;" data-action="play">Play</button>
+                <button style="padding: 10px 20px; margin: 0 5px; background: #ed8936; color: white; border: none; border-radius: 8px; cursor: pointer;" data-action="pause">Pause</button>
+                <button style="padding: 10px 20px; margin: 0 5px; background: #667eea; color: white; border: none; border-radius: 8px; cursor: pointer;" data-action="next">Next ▶</button>
+                <button style="padding: 10px 20px; margin: 0 5px; background: #764ba2; color: white; border: none; border-radius: 8px; cursor: pointer;" data-action="fullscreen">Fullscreen</button>
+                <label style="margin-left: 1rem; color: white;">
+                    <span>Speed:</span>
+                    <input type="range" id="demo-speed" min="2000" max="8000" step="500" value="5000" style="margin-left: 0.5rem;" />
+                </label>
+            </div>
+        </div>
+    </section>
+
+    <script src="/js/video-demo.js"></script>
+</body>
+</html>

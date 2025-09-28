@@ -7,11 +7,14 @@ class TrackWiseDemo {
             'login-scene',
             'dashboard-scene', 
             'map-scene',
-            'updates-scene'
+            'ai-chat-scene',
+            'analytics-scene',
+            'updates-scene',
+            'feedback-scene'
         ];
         this.autoPlayInterval = null;
         this.isPlaying = false;
-        this.sceneDuration = 4000; // 4 seconds per scene
+        this.sceneDuration = 5000; // 5 seconds per scene for better showcase
         
         this.init();
     }
@@ -93,17 +96,111 @@ class TrackWiseDemo {
                 </div>
             </div>
             
-            <!-- Scene 4: Real-time Updates -->
+            <!-- Scene 4: AI Chat Assistant -->
+            <div class="demo-scene" id="ai-chat-scene">
+                <div class="ai-chat-demo">
+                    <div class="chat-header">
+                        <h3>🤖 AI Travel Assistant</h3>
+                    </div>
+                    <div class="chat-window">
+                        <div class="chat-message user">"Find me the fastest route to the airport"</div>
+                        <div class="chat-message bot">
+                            <div class="typing-indicator">●●●</div>
+                            🤖 I found 3 routes. Route A via Express Lane is fastest (28 min). Bus DL-1PC-1234 departing in 5 minutes.
+                        </div>
+                        <div class="chat-message user">"Book this route for me"</div>
+                        <div class="chat-message bot">✅ Booked! Seat 15A reserved. Sending QR code to your phone.</div>
+                        <div class="chat-message user">"Track my bus please"</div>
+                        <div class="chat-message bot">🚌 Your bus is 2 stops away, arriving in 3 minutes at Gate B.</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Scene 5: Analytics Dashboard -->
+            <div class="demo-scene" id="analytics-scene">
+                <div class="analytics-demo">
+                    <h3 style="margin-bottom: 1rem;">📊 Real-time Analytics</h3>
+                    <div class="analytics-grid">
+                        <div class="analytics-card">
+                            <div class="analytics-number">2,847</div>
+                            <div class="analytics-label">Active Buses</div>
+                            <div class="analytics-trend up">↗ +5.2%</div>
+                        </div>
+                        <div class="analytics-card">
+                            <div class="analytics-number">45,290</div>
+                            <div class="analytics-label">Daily Passengers</div>
+                            <div class="analytics-trend up">↗ +12.8%</div>
+                        </div>
+                        <div class="analytics-card">
+                            <div class="analytics-number">94.2%</div>
+                            <div class="analytics-label">On-time Performance</div>
+                            <div class="analytics-trend up">↗ +2.1%</div>
+                        </div>
+                        <div class="analytics-card">
+                            <div class="analytics-number">4.8★</div>
+                            <div class="analytics-label">Avg Rating</div>
+                            <div class="analytics-trend up">↗ +0.3</div>
+                        </div>
+                    </div>
+                    <div class="analytics-chart">
+                        <div class="chart-bars">
+                            <div class="bar" style="height: 60%;"></div>
+                            <div class="bar" style="height: 80%;"></div>
+                            <div class="bar" style="height: 45%;"></div>
+                            <div class="bar" style="height: 95%;"></div>
+                            <div class="bar" style="height: 70%;"></div>
+                            <div class="bar" style="height: 85%;"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Scene 6: Real-time Updates -->
             <div class="demo-scene" id="updates-scene">
                 <div class="updates-demo">
-                    <h3 style="margin-bottom: 1rem;">⚡ Real-time System Updates</h3>
+                    <h3 style="margin-bottom: 1rem;">⚡ Live System Monitor</h3>
                     <div class="terminal-window">
-                        <div class="terminal-line success">✓ GPS location updated: Bus DL-1PC-1234</div>
-                        <div class="terminal-line info">ℹ Passenger count: 28/50 seats</div>
-                        <div class="terminal-line warning">⚠ Traffic alert: Delay 5 minutes</div>
-                        <div class="terminal-line success">✓ Route optimized automatically</div>
-                        <div class="terminal-line info">ℹ ETA updated: 20 minutes</div>
-                        <div class="terminal-line success">✓ Notifications sent to passengers</div>
+                        <div class="terminal-line success">✓ GPS location updated: Bus DL-1PC-1234 [28.6139°N, 77.2090°E]</div>
+                        <div class="terminal-line info">ℹ Passenger count: 28/50 seats (56% capacity)</div>
+                        <div class="terminal-line warning">⚠ Traffic alert: Delay 5 minutes on Route 15</div>
+                        <div class="terminal-line success">✓ Route optimized automatically - saved 8 minutes</div>
+                        <div class="terminal-line info">ℹ ETA updated: 20 minutes → 17 minutes</div>
+                        <div class="terminal-line success">✓ Push notifications sent to 156 passengers</div>
+                        <div class="terminal-line info">ℹ Weather update: Light rain detected, adjusting speeds</div>
+                        <div class="terminal-line success">✓ AI model prediction: 92% on-time arrival probability</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Scene 7: Feedback System -->
+            <div class="demo-scene" id="feedback-scene">
+                <div class="feedback-demo">
+                    <h3 style="margin-bottom: 1rem;">💬 Passenger Feedback</h3>
+                    <div class="feedback-container">
+                        <div class="feedback-item">
+                            <div class="feedback-avatar">👤</div>
+                            <div class="feedback-content">
+                                <div class="feedback-rating">⭐⭐⭐⭐⭐</div>
+                                <div class="feedback-text">"Excellent service! Bus arrived exactly on time."</div>
+                                <div class="feedback-meta">Sarah M. - Route 15 - 2 min ago</div>
+                            </div>
+                        </div>
+                        <div class="feedback-item">
+                            <div class="feedback-avatar">👤</div>
+                            <div class="feedback-content">
+                                <div class="feedback-rating">⭐⭐⭐⭐⭐</div>
+                                <div class="feedback-text">"AI assistant helped me find the perfect route!"</div>
+                                <div class="feedback-meta">Alex R. - Route 8 - 5 min ago</div>
+                            </div>
+                        </div>
+                        <div class="feedback-item">
+                            <div class="feedback-avatar">👤</div>
+                            <div class="feedback-content">
+                                <div class="feedback-rating">⭐⭐⭐⭐⭐</div>
+                                <div class="feedback-text">"Love the real-time tracking feature!"</div>
+                                <div class="feedback-meta">Maria L. - Route 22 - 8 min ago</div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -122,9 +219,31 @@ class TrackWiseDemo {
         // Play/pause on demo container click
         const demoContainer = document.querySelector('.demo-video-container');
         if (demoContainer) {
-            demoContainer.addEventListener('click', () => {
+            demoContainer.addEventListener('click', (e) => {
+                // Avoid toggling when clicking on controls inside the container
+                const target = e.target;
+                if (target.closest('.btn') || target.closest('input')) return;
                 this.togglePlayPause();
             });
+        }
+        
+        // Control buttons if present
+        const playBtn = document.querySelector('[data-action="play"]');
+        const pauseBtn = document.querySelector('[data-action="pause"]');
+        const prevBtn = document.querySelector('[data-action="prev"]');
+        const nextBtn = document.querySelector('[data-action="next"]');
+        const fsBtn = document.querySelector('[data-action="fullscreen"]');
+        const speed = document.getElementById('demo-speed');
+        
+        playBtn && playBtn.addEventListener('click', () => this.play());
+        pauseBtn && pauseBtn.addEventListener('click', () => this.pause());
+        prevBtn && prevBtn.addEventListener('click', () => this.previousScene());
+        nextBtn && nextBtn.addEventListener('click', () => this.nextScene());
+        if (speed) {
+            speed.addEventListener('input', (e) => this.setSpeed(Number(e.target.value)));
+        }
+        if (fsBtn && demoContainer && demoContainer.requestFullscreen) {
+            fsBtn.addEventListener('click', () => demoContainer.requestFullscreen());
         }
         
         // Keyboard controls
@@ -206,11 +325,14 @@ class TrackWiseDemo {
     updateURL() {
         const browserUrl = document.querySelector('.browser-url');
         if (browserUrl) {
-            const urls = [
+        const urls = [
                 'https://trackwise.com/login',
                 'https://trackwise.com/dashboard', 
                 'https://trackwise.com/track/DL-1PC-1234',
-                'https://trackwise.com/realtime-updates'
+                'https://trackwise.com/ai-assistant',
+                'https://trackwise.com/analytics',
+                'https://trackwise.com/realtime-updates',
+                'https://trackwise.com/feedback'
             ];
             browserUrl.textContent = urls[this.currentScene] || urls[0];
         }
@@ -243,7 +365,42 @@ class TrackWiseDemo {
                 }, 200);
                 break;
                 
-            case 3: // Updates scene
+            case 3: // AI Chat scene
+                // Animate chat messages with delay
+                setTimeout(() => {
+                    const messages = document.querySelectorAll('#ai-chat-scene .chat-message');
+                    messages.forEach((msg, index) => {
+                        msg.style.opacity = '0';
+                        msg.style.animation = 'none';
+                        setTimeout(() => {
+                            msg.style.animation = 'messageSlide 0.5s ease-out forwards';
+                        }, index * 800);
+                    });
+                }, 300);
+                break;
+                
+            case 4: // Analytics scene
+                // Animate analytics cards and bars
+                setTimeout(() => {
+                    const cards = document.querySelectorAll('#analytics-scene .analytics-card');
+                    const bars = document.querySelectorAll('#analytics-scene .bar');
+                    
+                    cards.forEach((card, index) => {
+                        setTimeout(() => {
+                            card.style.animation = 'bounceIn 0.6s ease-out';
+                        }, index * 150);
+                    });
+                    
+                    bars.forEach((bar, index) => {
+                        bar.style.animation = 'none';
+                        setTimeout(() => {
+                            bar.style.animation = 'barGrow 1.5s ease-out';
+                        }, 800 + index * 100);
+                    });
+                }, 200);
+                break;
+                
+            case 5: // Updates scene
                 // Restart terminal animation
                 setTimeout(() => {
                     const terminalLines = document.querySelectorAll('#updates-scene .terminal-line');
@@ -252,8 +409,22 @@ class TrackWiseDemo {
                         line.style.animation = 'none';
                         setTimeout(() => {
                             line.style.animation = `typewriter 0.5s ease-in-out forwards`;
-                            line.style.animationDelay = `${index * 0.5}s`;
+                            line.style.animationDelay = `${index * 0.4}s`;
                         }, 100);
+                    });
+                }, 200);
+                break;
+                
+            case 6: // Feedback scene
+                // Animate feedback items
+                setTimeout(() => {
+                    const items = document.querySelectorAll('#feedback-scene .feedback-item');
+                    items.forEach((item, index) => {
+                        item.style.opacity = '0';
+                        item.style.animation = 'none';
+                        setTimeout(() => {
+                            item.style.animation = 'feedbackSlide 0.6s ease-out forwards';
+                        }, index * 400);
                     });
                 }, 200);
                 break;
