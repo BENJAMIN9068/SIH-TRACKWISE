@@ -1,12 +1,15 @@
 // ===== Bus Tracking System - Service Worker ===== //
 
-const CACHE_NAME = 'bus-tracking-v2-clean'; // Force refresh after removing fake content
+const CACHE_NAME = 'bus-tracking-v3-enhanced-demo'; // Force refresh with enhanced demo and fixed chatbot
 const urlsToCache = [
   '/',
+  '/landing.html',
   '/css/modern-style.css',
   '/css/style.css',
+  '/css/video-demo.css',
   '/js/modern-app.js',
   '/js/app.js',
+  '/js/video-demo.js',
   '/images/bus-icon.png',
   '/images/logo.png',
   'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css',

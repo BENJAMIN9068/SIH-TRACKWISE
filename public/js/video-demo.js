@@ -264,13 +264,22 @@ class TrackWiseDemo {
             fsBtn.addEventListener('click', () => demoContainer.requestFullscreen());
         }
         
-        // Keyboard controls
+        // Keyboard controls - but only when NOT typing in input fields
         document.addEventListener('keydown', (e) => {
+            // Check if user is typing in an input field
+            const activeElement = document.activeElement;
+            const isInputActive = activeElement && (activeElement.tagName === 'INPUT' || activeElement.tagName === 'TEXTAREA' || activeElement.isContentEditable);
+            
+            // If user is typing, don't interfere with their input
+            if (isInputActive) return;
+            
             switch(e.key) {
                 case 'ArrowLeft':
+                    e.preventDefault();
                     this.previousScene();
                     break;
                 case 'ArrowRight':
+                    e.preventDefault();
                     this.nextScene();
                     break;
                 case ' ':

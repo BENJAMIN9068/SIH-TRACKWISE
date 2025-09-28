@@ -103,6 +103,10 @@ class ModernApp {
       navigator.serviceWorker.register('/sw.js')
         .then(registration => {
           console.log('SW registered: ', registration);
+          // Force update to get latest cache version
+          if (registration.waiting) {
+            registration.waiting.postMessage({ type: 'SKIP_WAITING' });
+          }
         })
         .catch(registrationError => {
           console.log('SW registration failed: ', registrationError);
@@ -222,13 +226,13 @@ class AIBusChatbot {
     this.showTyping();
     
     try {
-      // Simulate AI response (replace with actual API call)
       const response = await this.getAIResponse(message);
       this.hideTyping();
       this.addMessage(response, 'bot');
     } catch (error) {
+      console.error('Chatbot Error:', error);
       this.hideTyping();
-      this.addMessage('Sorry, I encountered an error. Please try again.', 'bot');
+      this.addMessage('Sorry, I encountered an error. Let me try to help you anyway! ' + this.getFallbackResponse(message), 'bot');
     }
   }
 
@@ -244,12 +248,17 @@ class AIBusChatbot {
   showTyping() {
     const typingDiv = document.createElement('div');
     typingDiv.className = 'typing-indicator';
-    typingDiv.innerHTML = 'AI is typing...';
+    typingDiv.innerHTML = '🤖 AI is thinking...';
+    typingDiv.id = 'typing-indicator';
     document.getElementById('chatbot-messages').appendChild(typingDiv);
+    
+    // Scroll to bottom
+    const container = document.getElementById('chatbot-messages');
+    container.scrollTop = container.scrollHeight;
   }
 
   hideTyping() {
-    const typing = document.querySelector('.typing-indicator');
+    const typing = document.getElementById('typing-indicator');
     if (typing) typing.remove();
   }
 
